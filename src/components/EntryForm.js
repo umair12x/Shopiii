@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import GlassCard from './GlassCard';
 import { COLORS, THEME } from '../config/colors';
 
 export const EntryForm = ({ 
@@ -65,7 +66,7 @@ export const EntryForm = ({
         style={styles.container}
       >
         <View style={styles.overlay}>
-          <View style={styles.formContainer}>
+          <GlassCard style={styles.formContainer}>
             <View style={styles.header}>
               <Text style={styles.title}>
                 {editData ? 'Edit Entry' : 'Add New Entry'}
@@ -82,7 +83,7 @@ export const EntryForm = ({
                 placeholder="Enter item name"
                 value={itemName}
                 onChangeText={setItemName}
-                placeholderTextColor={COLORS.gray}
+                placeholderTextColor={COLORS.dim}
               />
             </View>
 
@@ -94,7 +95,7 @@ export const EntryForm = ({
                 value={purchasePrice}
                 onChangeText={setPurchasePrice}
                 keyboardType="decimal-pad"
-                placeholderTextColor={COLORS.gray}
+                placeholderTextColor={COLORS.dim}
               />
             </View>
 
@@ -106,7 +107,7 @@ export const EntryForm = ({
                 value={salePrice}
                 onChangeText={setSalePrice}
                 keyboardType="decimal-pad"
-                placeholderTextColor={COLORS.gray}
+                placeholderTextColor={COLORS.dim}
               />
             </View>
 
@@ -126,7 +127,7 @@ export const EntryForm = ({
                 </Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </GlassCard>
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -140,17 +141,17 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
     justifyContent: 'flex-end',
+    padding: THEME.spacing.lg,
   },
   formContainer: {
-    backgroundColor: COLORS.white,
     borderTopLeftRadius: THEME.borderRadius.large,
     borderTopRightRadius: THEME.borderRadius.large,
     paddingHorizontal: THEME.spacing.lg,
     paddingTop: THEME.spacing.lg,
     paddingBottom: THEME.spacing.xl,
-    maxHeight: '80%',
+    width: '100%',
   },
   header: {
     flexDirection: 'row',
@@ -160,12 +161,12 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: THEME.fonts.large,
-    fontWeight: 'bold',
-    color: COLORS.dark,
+    fontWeight: '700',
+    color: COLORS.text,
   },
   closeBtn: {
-    fontSize: 24,
-    color: COLORS.gray,
+    fontSize: 22,
+    color: COLORS.dim,
   },
   inputGroup: {
     marginBottom: THEME.spacing.lg,
@@ -173,17 +174,18 @@ const styles = StyleSheet.create({
   label: {
     fontSize: THEME.fonts.regular,
     fontWeight: '600',
-    color: COLORS.dark,
+    color: COLORS.dim,
     marginBottom: THEME.spacing.sm,
   },
   input: {
     borderWidth: 1,
-    borderColor: COLORS.lightGray,
+    borderColor: 'rgba(3,48,67,0.06)',
     borderRadius: THEME.borderRadius.small,
     paddingHorizontal: THEME.spacing.md,
     paddingVertical: THEME.spacing.md,
     fontSize: THEME.fonts.regular,
-    color: COLORS.black,
+    color: COLORS.text,
+    backgroundColor: COLORS.glassMuted,
   },
   buttonGroup: {
     flexDirection: 'row',
@@ -199,12 +201,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cancelBtn: {
-    backgroundColor: COLORS.lightGray,
+    backgroundColor: COLORS.glassMuted,
   },
   cancelBtnText: {
     fontSize: THEME.fonts.regular,
     fontWeight: '600',
-    color: COLORS.darkGray,
+    color: COLORS.text,
   },
   submitBtn: {
     backgroundColor: COLORS.primary,
@@ -212,6 +214,6 @@ const styles = StyleSheet.create({
   submitBtnText: {
     fontSize: THEME.fonts.regular,
     fontWeight: '600',
-    color: COLORS.white,
+    color: COLORS.surface,
   },
 });
