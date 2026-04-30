@@ -1,93 +1,77 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import GlassCard from './GlassCard';
 import { COLORS, THEME } from '../config/colors';
 import { formatCurrency } from '../utils/currencyFormatter';
 
 export const TotalsSummary = ({ totals }) => {
   return (
-    <GlassCard style={styles.container}>
-      <View style={styles.summaryRow}>
-        <View style={styles.summaryItem}>
-          <Text style={styles.label}>💰 Investment</Text>
+    <View style={styles.container}>
+      <View style={styles.row}>
+        <View style={styles.block}>
+          <Text style={styles.label}>Investment</Text>
           <Text style={styles.value}>{formatCurrency(totals.totalInvestment)}</Text>
         </View>
-        <View style={styles.summaryItem}>
-          <Text style={styles.label}>🛍 Sales</Text>
+
+        <View style={styles.block}>
+          <Text style={styles.label}>Sales</Text>
           <Text style={styles.value}>{formatCurrency(totals.totalSales)}</Text>
         </View>
-        <View style={styles.summaryItem}>
-          <Text style={[styles.label, styles.profitLabel]}>📈 Profit</Text>
-          <Text
-            style={[
-              styles.value,
-              totals.totalProfit >= 0 ? { color: COLORS.success } : { color: COLORS.error },
-            ]}
-          >
+
+        <View style={styles.block}>
+          <Text style={styles.label}>Profit</Text>
+          <Text style={[styles.value, totals.totalProfit >= 0 ? { color: COLORS.success } : { color: COLORS.error }]}>
             {formatCurrency(totals.totalProfit)}
           </Text>
         </View>
       </View>
 
-      <View style={styles.paymentRow}>
-        <View style={styles.paymentItem}>
-          <Text style={styles.label}>✓ Collected</Text>
-          <Text style={[styles.paymentValue, { color: COLORS.success }]}>
-            {formatCurrency(totals.collectedAmount)}
-          </Text>
-        </View>
-        <View style={styles.paymentItem}>
-          <Text style={styles.label}>⏳ Pending</Text>
-          <Text style={[styles.paymentValue, { color: COLORS.warning }]}>
-            {formatCurrency(totals.pendingAmount)}
-          </Text>
-        </View>
+      <View style={styles.rowSecondary}>
+        <Text style={styles.smallLabel}>Collected: <Text style={styles.smallValue}>{formatCurrency(totals.collectedAmount)}</Text></Text>
+        <Text style={styles.smallLabel}>Pending: <Text style={[styles.smallValue, { color: COLORS.warning }]}>{formatCurrency(totals.pendingAmount)}</Text></Text>
       </View>
-    </GlassCard>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: THEME.spacing.md,
+    backgroundColor: COLORS.surface,
+    borderRadius: THEME.borderRadius.lg,
+    padding: THEME.spacing.md,
+    marginHorizontal: THEME.spacing.lg,
+    marginBottom: THEME.spacing.md,
+    ...THEME.elevation.soft,
   },
-  summaryRow: {
+  row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: THEME.spacing.lg,
   },
-  summaryItem: {
-    alignItems: 'center',
+  block: {
     flex: 1,
-  },
-  paymentRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: THEME.spacing.md,
-    gap: THEME.spacing.lg,
-  },
-  paymentItem: {
-    alignItems: 'center',
-    flex: 1,
+    alignItems: 'flex-start',
+    paddingRight: THEME.spacing.md,
   },
   label: {
-    fontSize: THEME.fonts.small,
-    color: COLORS.dim,
-    marginBottom: THEME.spacing.xs,
-    fontWeight: '600',
-  },
-  profitLabel: {
-    fontWeight: '700',
+    fontSize: THEME.fonts.sm,
+    color: COLORS.muted,
+    marginBottom: 6,
   },
   value: {
-    fontSize: THEME.fonts.large,
+    fontSize: THEME.fonts.lg,
     fontWeight: '700',
     color: COLORS.text,
   },
-  paymentValue: {
-    fontSize: THEME.fonts.medium,
+  rowSecondary: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: THEME.spacing.sm,
+  },
+  smallLabel: {
+    fontSize: THEME.fonts.sm,
+    color: COLORS.muted,
+  },
+  smallValue: {
     fontWeight: '700',
+    color: COLORS.text,
   },
 });

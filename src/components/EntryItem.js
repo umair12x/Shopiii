@@ -6,145 +6,134 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
-import GlassCard from './GlassCard';
 import { COLORS, THEME } from '../config/colors';
 import { formatCurrency } from '../utils/currencyFormatter';
 
-export const EntryItem = ({
-  entry,
-  onEdit,
-  onDelete,
-  onTogglePayment,
-}) => {
+export const EntryItem = ({ entry, onEdit, onDelete, onTogglePayment }) => {
   const isProfit = entry.profit > 0;
   const isLoss = entry.profit < 0;
 
   const handleDelete = () => {
-    Alert.alert(
-      'Delete Entry',
-      `Are you sure you want to delete "${entry.itemName}"?`,
-      [
-        { text: 'Cancel', onPress: () => {} },
-        {
-          text: 'Delete',
-          onPress: () => onDelete(entry.id),
-          style: 'destructive',
-        },
-      ]
-    );
+    Alert.alert('Delete Entry', `Are you sure you want to delete "${entry.itemName}"?`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', onPress: () => onDelete(entry.id), style: 'destructive' },
+    ]);
   };
 
   return (
-    <GlassCard style={styles.container}>
-      <View style={styles.contentTop}>
-        <View style={styles.itemInfo}>
-          <Text style={styles.itemName}>{entry.itemName}</Text>
-          <Text style={styles.prices}>
-            Cost: {formatCurrency(entry.purchasePrice)} | Sale: {formatCurrency(entry.salePrice)}
-          </Text>
+    <View style={styles.container}>
+      <View style={styles.topRow}>
+        <View style={styles.info}>
+          <Text style={styles.name}>{entry.itemName}</Text>
+          <Text style={styles.meta}>{`Cost ${formatCurrency(entry.purchasePrice)} • Sale ${formatCurrency(entry.salePrice)}`}</Text>
         </View>
-        <View style={styles.profitContainer}>
+
+        <View style={styles.rightCol}>
           <Text style={[styles.profit, isProfit ? { color: COLORS.success } : { color: COLORS.error }]}>
-            {isProfit ? '+' : ''} {formatCurrency(entry.profit)}
+            {isProfit ? '+' : ''}{formatCurrency(entry.profit)}
           </Text>
-          <Text style={styles.profitLabel}>{isProfit ? 'Profit' : isLoss ? 'Loss' : 'Break Even'}</Text>
+          <Text style={styles.profitLabel}>{isProfit ? 'Profit' : isLoss ? 'Loss' : 'Even'}</Text>
         </View>
       </View>
 
-      <View style={styles.actionsRow}>
+      <View style={styles.actions}>
         <TouchableOpacity
-          style={[
-            styles.paymentBtn,
-            { backgroundColor: entry.isPaymentCollected ? COLORS.success : COLORS.warning },
-          ]}
           onPress={() => onTogglePayment(entry.id)}
+          style={[styles.paymentBtn, entry.isPaymentCollected ? styles.collected : styles.pending]}
         >
-          <Text style={styles.paymentBtnText}>{entry.isPaymentCollected ? '✓ Collected' : '⏳ Pending'}</Text>
+          <Text style={styles.paymentText}>{entry.isPaymentCollected ? '✓ Collected' : '⏳ Pending'}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.editBtn} onPress={() => onEdit(entry)}>
-          <Text style={styles.actionBtnText}>✎ Edit</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
-          <Text style={styles.actionBtnText}>🗑 Delete</Text>
-        </TouchableOpacity>
+        <View style={styles.rowBtns}>
+          <TouchableOpacity onPress={() => onEdit(entry)} style={styles.iconBtn}>
+            <Text style={styles.iconText}>✎</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleDelete} style={[styles.iconBtn, styles.deleteBtn]}>
+            <Text style={styles.iconText}>🗑</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </GlassCard>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: COLORS.surface,
+    borderRadius: THEME.borderRadius.md,
+    padding: THEME.spacing.md,
     marginBottom: THEME.spacing.md,
+    ...THEME.elevation.subtle,
   },
-  contentTop: {
+  topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: THEME.spacing.md,
+    alignItems: 'center',
+    marginBottom: THEME.spacing.sm,
   },
-  itemInfo: {
+  info: {
     flex: 1,
+    paddingRight: THEME.spacing.md,
   },
-  itemName: {
-    fontSize: THEME.fonts.medium,
-    fontWeight: '700',
+  name: {
+    fontSize: THEME.fonts.md,
     color: COLORS.text,
-    marginBottom: THEME.spacing.xs,
+    fontWeight: '700',
+    marginBottom: 6,
   },
-  prices: {
-    fontSize: THEME.fonts.small,
-    color: COLORS.dim,
+  meta: {
+    fontSize: THEME.fonts.sm,
+    color: COLORS.muted,
   },
-  profitContainer: {
+  rightCol: {
     alignItems: 'flex-end',
-    justifyContent: 'center',
   },
   profit: {
-    fontSize: THEME.fonts.large,
-    fontWeight: '800',
-    marginBottom: THEME.spacing.xs,
+    fontSize: THEME.fonts.lg,
+    fontWeight: '700',
   },
   profitLabel: {
-    fontSize: THEME.fonts.small,
-    color: COLORS.dim,
+    fontSize: THEME.fonts.sm,
+    color: COLORS.muted,
   },
-  actionsRow: {
+  actions: {
     flexDirection: 'row',
-    gap: THEME.spacing.sm,
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
   paymentBtn: {
-    flex: 0.8,
-    paddingVertical: THEME.spacing.sm,
-    borderRadius: THEME.borderRadius.small,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: THEME.borderRadius.sm,
+  },
+  collected: {
+    backgroundColor: 'rgba(46,125,50,0.12)',
+  },
+  pending: {
+    backgroundColor: 'rgba(217,119,6,0.08)',
+  },
+  paymentText: {
+    color: COLORS.text,
+    fontWeight: '600',
+  },
+  rowBtns: {
+    flexDirection: 'row',
+    gap: THEME.spacing.sm,
+  },
+  iconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: THEME.borderRadius.sm,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  paymentBtnText: {
-    fontSize: THEME.fonts.small,
-    fontWeight: '700',
-    color: COLORS.surface,
-  },
-  editBtn: {
-    flex: 0.6,
-    paddingVertical: THEME.spacing.sm,
-    borderRadius: THEME.borderRadius.small,
-    backgroundColor: COLORS.secondary,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: 'rgba(11,19,32,0.04)',
+    marginLeft: THEME.spacing.sm,
   },
   deleteBtn: {
-    flex: 0.6,
-    paddingVertical: THEME.spacing.sm,
-    borderRadius: THEME.borderRadius.small,
-    backgroundColor: COLORS.error,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: 'rgba(198,40,40,0.08)',
   },
-  actionBtnText: {
-    fontSize: THEME.fonts.small,
-    fontWeight: '700',
-    color: COLORS.surface,
+  iconText: {
+    fontSize: 16,
+    color: COLORS.text,
   },
 });

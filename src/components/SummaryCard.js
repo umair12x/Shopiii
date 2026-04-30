@@ -1,41 +1,52 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import GlassCard from './GlassCard';
 import { COLORS, THEME } from '../config/colors';
 import { formatCurrency } from '../utils/currencyFormatter';
 
 export const SummaryCard = ({
   title,
   amount,
+  backgroundColor = COLORS.surface,
+  textColor = COLORS.text,
   icon = '📊',
 }) => {
   return (
-    <GlassCard style={styles.wrapper}>
-      <Text style={styles.icon}>{icon}</Text>
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.amount}>{formatCurrency(amount)}</Text>
-    </GlassCard>
+    <View style={[styles.card, { backgroundColor }] }>
+      <View style={styles.row}>
+        <Text style={styles.icon}>{icon}</Text>
+        <Text style={[styles.title, { color: textColor }]}>{title}</Text>
+      </View>
+      <Text style={[styles.amount, { color: textColor }]}>
+        {formatCurrency(amount)}
+      </Text>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  wrapper: {
-    alignItems: 'center',
+  card: {
+    borderRadius: THEME.borderRadius.md,
+    padding: THEME.spacing.md,
     marginBottom: THEME.spacing.md,
-    minWidth: 120,
+    backgroundColor: COLORS.surface,
+    ...THEME.elevation.soft,
   },
-  icon: {
-    fontSize: 30,
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: THEME.spacing.sm,
     marginBottom: THEME.spacing.sm,
   },
+  icon: {
+    fontSize: 22,
+  },
   title: {
-    fontSize: THEME.fonts.regular,
-    color: COLORS.dim,
-    marginBottom: THEME.spacing.xs,
+    fontSize: THEME.fonts.sm,
     fontWeight: '600',
+    color: COLORS.muted,
   },
   amount: {
-    fontSize: THEME.fonts.large,
+    fontSize: THEME.fonts.lg,
     fontWeight: '700',
     color: COLORS.text,
   },
