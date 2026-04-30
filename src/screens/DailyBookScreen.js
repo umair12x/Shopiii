@@ -102,7 +102,6 @@ export const DailyBookScreen = () => {
           contentContainerStyle={styles.listContent}
         />
 
-        {/* Entry Form Modal */}
         <EntryForm
           visible={formVisible}
           onClose={() => {
@@ -114,13 +113,8 @@ export const DailyBookScreen = () => {
           itemCount={entries.length}
         />
 
-        {/* Add Entry Button */}
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={handleAddEntry}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.addButtonText}>+ Add Entry</Text>
+        <TouchableOpacity style={styles.addButton} onPress={handleAddEntry} activeOpacity={0.85}>
+          <Text style={styles.addButtonText}>+</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -183,21 +177,17 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 20,
     right: 20,
-    left: 20,
-    backgroundColor: COLORS.primary,
-    paddingVertical: THEME.spacing.lg,
-    borderRadius: THEME.borderRadius.medium,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: COLORS.accent,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 8,
+    ...THEME.elevation.soft,
   },
   addButtonText: {
-    fontSize: THEME.fonts.large,
-    fontWeight: 'bold',
+    fontSize: 28,
     color: COLORS.white,
+    fontWeight: '700',
   },
 });

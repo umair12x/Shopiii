@@ -226,7 +226,7 @@ export const HomeScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.background,
   },
   container: {
     flex: 1,
@@ -239,32 +239,29 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: THEME.fonts.xl,
-    fontWeight: "bold",
+    fontWeight: '700',
     color: COLORS.white,
     marginBottom: THEME.spacing.sm,
   },
   subtitle: {
-    fontSize: THEME.fonts.regular,
-    color: COLORS.light,
+    fontSize: THEME.fonts.sm,
+    color: 'rgba(255,255,255,0.9)',
   },
   shopDetailsCard: {
-    backgroundColor: COLORS.light,
-    borderRadius: THEME.borderRadius.medium,
-    padding: THEME.spacing.lg,
+    backgroundColor: COLORS.surface,
     marginHorizontal: THEME.spacing.lg,
     marginTop: THEME.spacing.lg,
-    marginBottom: THEME.spacing.lg,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.primary,
+    borderRadius: THEME.borderRadius.md,
+    padding: THEME.spacing.lg,
   },
   detailRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: THEME.spacing.md,
   },
   detailLabel: {
     fontSize: THEME.fonts.regular,
-    fontWeight: "600",
+    fontWeight: '600',
     color: COLORS.dark,
   },
   detailValue: {
@@ -272,7 +269,7 @@ const styles = StyleSheet.create({
     color: COLORS.darkGray,
     flex: 1,
     marginLeft: THEME.spacing.md,
-    textAlign: "right",
+    textAlign: 'right',
   },
   infoSection: {
     marginBottom: THEME.spacing.xl,
@@ -280,7 +277,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: THEME.fonts.large,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     color: COLORS.dark,
     marginBottom: THEME.spacing.lg,
   },
@@ -288,7 +285,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.light,
     borderRadius: THEME.borderRadius.medium,
     padding: THEME.spacing.lg,
-    alignItems: "center",
+    alignItems: 'center',
   },
   loaderText: {
     marginTop: THEME.spacing.sm,
@@ -306,7 +303,7 @@ const styles = StyleSheet.create({
   },
   quickTitle: {
     fontSize: THEME.fonts.medium,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     color: COLORS.dark,
     marginBottom: THEME.spacing.md,
   },

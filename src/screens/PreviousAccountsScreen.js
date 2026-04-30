@@ -133,66 +133,29 @@ export const PreviousAccountsScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: COLORS.white,
-  },
-  container: {
-    flex: 1,
-  },
+  safeArea: { flex: 1, backgroundColor: COLORS.background },
+  container: { flex: 1,},
   header: {
-     paddingTop: StatusBar.currentHeight || 0,
+    paddingTop: StatusBar.currentHeight || 0,
     backgroundColor: COLORS.primary,
     paddingHorizontal: THEME.spacing.lg,
     paddingVertical: THEME.spacing.lg,
   },
   title: {
     fontSize: THEME.fonts.xl,
-    fontWeight: 'bold',
+    fontWeight: '700',
     color: COLORS.white,
     marginBottom: THEME.spacing.sm,
   },
-  subtitle: {
-    fontSize: THEME.fonts.regular,
-    color: COLORS.light,
-  },
-  datePickerButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: THEME.spacing.lg,
-    marginVertical: THEME.spacing.lg,
-    paddingHorizontal: THEME.spacing.lg,
-    paddingVertical: THEME.spacing.md,
-    backgroundColor: COLORS.light,
-    borderRadius: THEME.borderRadius.medium,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.secondary,
-  },
-  datePickerIcon: {
-    fontSize: 24,
-    marginRight: THEME.spacing.md,
-  },
+  subtitle: { fontSize: THEME.fonts.sm, color: 'rgba(255,255,255,0.9)' },
+  datePickerIcon: { fontSize: 24, marginRight: THEME.spacing.md },
   datePickerContent: {
     flex: 1,
   },
-  datePickerLabel: {
-    fontSize: THEME.fonts.small,
-    color: COLORS.gray,
-    marginBottom: THEME.spacing.xs,
-  },
-  datePickerValue: {
-    fontSize: THEME.fonts.medium,
-    fontWeight: 'bold',
-    color: COLORS.dark,
-  },
-  datePickerArrow: {
-    fontSize: THEME.fonts.xl,
-    color: COLORS.gray,
-  },
-  listContent: {
-    paddingHorizontal: THEME.spacing.lg,
-    paddingBottom: THEME.spacing.lg,
-  },
+  datePickerLabel: { fontSize: THEME.fonts.sm, color: COLORS.gray, marginBottom: THEME.spacing.xs },
+  datePickerValue: { fontSize: THEME.fonts.md, fontWeight: '700', color: COLORS.text },
+  datePickerArrow: { fontSize: THEME.fonts.xl, color: COLORS.gray },
+  listContent: { paddingHorizontal: THEME.spacing.lg, paddingBottom: THEME.spacing.lg },
   entryItemWrapper: {
     marginBottom: THEME.spacing.md,
   },
@@ -205,27 +168,14 @@ const styles = StyleSheet.create({
     fontSize: 64,
     marginBottom: THEME.spacing.lg,
   },
-  emptyText: {
-    fontSize: THEME.fonts.large,
-    fontWeight: '600',
-    color: COLORS.dark,
-    marginBottom: THEME.spacing.sm,
-  },
-  emptySubtext: {
-    fontSize: THEME.fonts.regular,
-    color: COLORS.gray,
-  },
+  emptyText: { fontSize: THEME.fonts.xl, fontWeight: '700', color: COLORS.text, marginBottom: THEME.spacing.sm },
+  emptySubtext: { fontSize: THEME.fonts.md, color: COLORS.gray },
   pickerOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
-  pickerContainer: {
-    backgroundColor: COLORS.white,
-    borderTopLeftRadius: THEME.borderRadius.large,
-    borderTopRightRadius: THEME.borderRadius.large,
-    paddingBottom: THEME.spacing.lg,
-  },
+  pickerContainer: { backgroundColor: COLORS.surface, borderTopLeftRadius: THEME.borderRadius.lg, borderTopRightRadius: THEME.borderRadius.lg, paddingBottom: THEME.spacing.lg },
   pickerHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -245,22 +195,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: COLORS.gray,
   },
-  pickerTitle: {
-    fontSize: THEME.fonts.large,
-    fontWeight: 'bold',
-    color: COLORS.dark,
-  },
-  pickerConfirmBtn: {
-    marginHorizontal: THEME.spacing.lg,
-    marginTop: THEME.spacing.lg,
-    paddingVertical: THEME.spacing.md,
-    backgroundColor: COLORS.primary,
-    borderRadius: THEME.borderRadius.small,
-    alignItems: 'center',
-  },
-  pickerConfirmBtnText: {
-    fontSize: THEME.fonts.large,
-    fontWeight: 'bold',
-    color: COLORS.white,
-  },
+  pickerTitle: { fontSize: THEME.fonts.lg, fontWeight: '700', color: COLORS.text },
+  pickerConfirmBtn: { marginHorizontal: THEME.spacing.lg, marginTop: THEME.spacing.lg, paddingVertical: THEME.spacing.md, backgroundColor: COLORS.primary, borderRadius: THEME.borderRadius.sm, alignItems: 'center' },
+  pickerConfirmBtnText: { fontSize: THEME.fonts.lg, fontWeight: '700', color: COLORS.white },
 });

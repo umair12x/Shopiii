@@ -357,55 +357,22 @@ export const DashboardScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: COLORS.white,
-  },
-  container: {
-    flex: 1,
-  },
+  safeArea: { flex: 1, backgroundColor: COLORS.background },
+  container: { flex: 1},
   header: {
-     paddingTop: StatusBar.currentHeight || 0,
+    paddingTop: StatusBar.currentHeight || 0,
     backgroundColor: COLORS.primary,
     paddingHorizontal: THEME.spacing.lg,
     paddingVertical: THEME.spacing.lg,
   },
-  title: {
-    fontSize: THEME.fonts.xl,
-    fontWeight: 'bold',
-    color: COLORS.white,
-    marginBottom: THEME.spacing.sm,
-  },
-  subtitle: {
-    fontSize: THEME.fonts.regular,
-    color: COLORS.light,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: THEME.spacing.lg,
-    paddingTop: THEME.spacing.lg,
-    gap: THEME.spacing.md,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: THEME.spacing.md,
-    borderRadius: THEME.borderRadius.small,
-    backgroundColor: COLORS.lightGray,
-    alignItems: 'center',
-  },
+  title: { fontSize: THEME.fonts.xl, fontWeight: '700', color: COLORS.white, marginBottom: THEME.spacing.sm },
+  subtitle: { fontSize: THEME.fonts.sm, color: 'rgba(255,255,255,0.9)' },
+  tabContainer: { flexDirection: 'row', paddingHorizontal: THEME.spacing.lg, paddingTop: THEME.spacing.lg, gap: THEME.spacing.md },
+  tab: { flex: 1, paddingVertical: THEME.spacing.md, borderRadius: THEME.borderRadius.sm, backgroundColor: COLORS.lightGray, alignItems: 'center' },
   activeTab: {
     backgroundColor: COLORS.primary,
   },
-  tabText: {
-    fontSize: THEME.fonts.regular,
-    fontWeight: '600',
-    color: COLORS.gray,
-  },
+  tabText: { fontSize: THEME.fonts.md, fontWeight: '600', color: COLORS.gray },
   activeTabText: {
     color: COLORS.white,
   },
