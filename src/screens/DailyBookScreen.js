@@ -10,6 +10,7 @@ import {
   FlatList,
   ActivityIndicator,
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { DataContext } from '../context/DataContext';
 import { EntryForm } from '../components/EntryForm';
 import { EntryItem } from '../components/EntryItem';
@@ -70,7 +71,10 @@ export const DailyBookScreen = () => {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Daily Book</Text>
+          <View style={styles.headerRow}>
+            <MaterialCommunityIcons name="clipboard-text-outline" size={24} color={COLORS.white} />
+            <Text style={styles.title}>Daily Book</Text>
+          </View>
           <Text style={styles.date}>{formatDateDisplay(selectedDate)}</Text>
         </View>
 
@@ -91,7 +95,12 @@ export const DailyBookScreen = () => {
           )}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyIcon}>📝</Text>
+              <MaterialCommunityIcons
+                name="clipboard-text-outline"
+                size={72}
+                color={COLORS.primary}
+                style={styles.emptyIcon}
+              />
               <Text style={styles.emptyText}>No entries for today</Text>
               <Text style={styles.emptySubtext}>
                 Tap the button below to add your first entry
@@ -114,7 +123,7 @@ export const DailyBookScreen = () => {
         />
 
         <TouchableOpacity style={styles.addButton} onPress={handleAddEntry} activeOpacity={0.85}>
-          <Text style={styles.addButtonText}>+</Text>
+          <MaterialCommunityIcons name="plus" size={32} color={COLORS.white} />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -135,11 +144,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: THEME.spacing.lg,
     paddingVertical: THEME.spacing.lg,
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: THEME.spacing.sm,
+    marginBottom: THEME.spacing.sm,
+  },
   title: {
     fontSize: THEME.fonts.xl,
     fontWeight: 'bold',
     color: COLORS.white,
-    marginBottom: THEME.spacing.sm,
   },
   date: {
     fontSize: THEME.fonts.regular,
@@ -155,7 +169,6 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   emptyIcon: {
-    fontSize: 64,
     marginBottom: THEME.spacing.lg,
   },
   emptyText: {
@@ -184,10 +197,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     ...THEME.elevation.soft,
-  },
-  addButtonText: {
-    fontSize: 28,
-    color: COLORS.white,
-    fontWeight: '700',
   },
 });

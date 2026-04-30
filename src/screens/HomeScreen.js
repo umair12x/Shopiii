@@ -8,6 +8,7 @@ import {
   StatusBar,
   ActivityIndicator,
 } from "react-native";
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from "@react-navigation/native";
 import { DataContext } from "../context/DataContext";
 import { SummaryCard } from "../components/SummaryCard";
@@ -95,22 +96,34 @@ export const HomeScreen = () => {
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>{shopDetails.name}</Text>
+          <View style={styles.headerRow}>
+            <MaterialCommunityIcons name="storefront-outline" size={24} color={COLORS.white} />
+            <Text style={styles.title}>{shopDetails.name}</Text>
+          </View>
           <Text style={styles.subtitle}>{formatDateDisplay(today)}</Text>
         </View>
 
         {/* Shop Details Card */}
         <View style={styles.shopDetailsCard}>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>👤 Owner:</Text>
+            <View style={styles.detailLabelRow}>
+              <MaterialCommunityIcons name="account-outline" size={18} color={COLORS.primary} />
+              <Text style={styles.detailLabel}>Owner:</Text>
+            </View>
             <Text style={styles.detailValue}>{shopDetails.owner}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>📍 Address:</Text>
+            <View style={styles.detailLabelRow}>
+              <MaterialCommunityIcons name="map-marker-outline" size={18} color={COLORS.primary} />
+              <Text style={styles.detailLabel}>Address:</Text>
+            </View>
             <Text style={styles.detailValue}>{shopDetails.address}</Text>
           </View>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>📞 Contact:</Text>
+            <View style={styles.detailLabelRow}>
+              <MaterialCommunityIcons name="phone-outline" size={18} color={COLORS.primary} />
+              <Text style={styles.detailLabel}>Contact:</Text>
+            </View>
             <Text style={styles.detailValue}>{shopDetails.contact}</Text>
           </View>
         </View>
@@ -131,7 +144,8 @@ export const HomeScreen = () => {
                 amount={todayTotals.totalProfit}
                 backgroundColor={COLORS.profitGreen}
                 textColor={COLORS.success}
-                icon="📈"
+                iconName="trending-up"
+                iconColor={COLORS.success}
               />
 
               <SummaryCard
@@ -139,7 +153,8 @@ export const HomeScreen = () => {
                 amount={todayTotals.totalSales}
                 backgroundColor={COLORS.light}
                 textColor={COLORS.secondary}
-                icon="🛍"
+                iconName="cart-outline"
+                iconColor={COLORS.secondary}
               />
 
               <SummaryCard
@@ -147,7 +162,8 @@ export const HomeScreen = () => {
                 amount={todayTotals.totalInvestment}
                 backgroundColor={COLORS.light}
                 textColor={COLORS.dark}
-                icon="💰"
+                iconName="cash-multiple"
+                iconColor={COLORS.dark}
               />
 
               <SummaryCard
@@ -155,7 +171,8 @@ export const HomeScreen = () => {
                 amount={todayTotals.cashInHand}
                 backgroundColor={COLORS.light}
                 textColor={COLORS.primary}
-                icon="💵"
+                iconName="wallet-outline"
+                iconColor={COLORS.primary}
               />
             </>
           )}
@@ -171,7 +188,8 @@ export const HomeScreen = () => {
             amount={monthTotals.totalProfit}
             backgroundColor={COLORS.profitGreen}
             textColor={COLORS.success}
-            icon="📊"
+            iconName="chart-line"
+            iconColor={COLORS.success}
           />
 
           <SummaryCard
@@ -179,7 +197,8 @@ export const HomeScreen = () => {
             amount={monthTotals.totalSales}
             backgroundColor={COLORS.light}
             textColor={COLORS.secondary}
-            icon="🧾"
+            iconName="receipt-text-outline"
+            iconColor={COLORS.secondary}
           />
         </View>
 
@@ -193,7 +212,8 @@ export const HomeScreen = () => {
             amount={yearTotals.totalProfit}
             backgroundColor={COLORS.profitGreen}
             textColor={COLORS.success}
-            icon="📅"
+            iconName="calendar-outline"
+            iconColor={COLORS.success}
           />
 
           <SummaryCard
@@ -201,22 +221,29 @@ export const HomeScreen = () => {
             amount={yearTotals.totalSales}
             backgroundColor={COLORS.light}
             textColor={COLORS.secondary}
-            icon="🏪"
+            iconName="storefront-outline"
+            iconColor={COLORS.secondary}
           />
         </View>
 
         {/* Quick Info */}
         <View style={styles.quickInfo}>
-          <Text style={styles.quickTitle}>💡 Quick Tips</Text>
-          <Text style={styles.quickText}>
-            • Use the Daily Book tab to track transactions
-          </Text>
-          <Text style={styles.quickText}>
-            • Check Dashboard for analytics and trends
-          </Text>
-          <Text style={styles.quickText}>
-            • View Previous Accounts to see historical data
-          </Text>
+          <View style={styles.quickTitleRow}>
+            <MaterialCommunityIcons name="lightbulb-outline" size={20} color={COLORS.accent} />
+            <Text style={styles.quickTitle}>Quick Tips</Text>
+          </View>
+          <View style={styles.quickTipRow}>
+            <MaterialCommunityIcons name="clipboard-text-outline" size={16} color={COLORS.accent} />
+            <Text style={styles.quickText}>Use the Daily Book tab to track transactions</Text>
+          </View>
+          <View style={styles.quickTipRow}>
+            <MaterialCommunityIcons name="chart-line" size={16} color={COLORS.accent} />
+            <Text style={styles.quickText}>Check Dashboard for analytics and trends</Text>
+          </View>
+          <View style={styles.quickTipRow}>
+            <MaterialCommunityIcons name="history" size={16} color={COLORS.accent} />
+            <Text style={styles.quickText}>View Previous Accounts to see historical data</Text>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -237,11 +264,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: THEME.spacing.lg,
     paddingVertical: THEME.spacing.lg,
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: THEME.spacing.sm,
+    marginBottom: THEME.spacing.sm,
+  },
   title: {
     fontSize: THEME.fonts.xl,
     fontWeight: '700',
     color: COLORS.white,
-    marginBottom: THEME.spacing.sm,
   },
   subtitle: {
     fontSize: THEME.fonts.sm,
@@ -258,6 +290,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: THEME.spacing.md,
+  },
+  detailLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   detailLabel: {
     fontSize: THEME.fonts.regular,
@@ -301,16 +338,27 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderLeftColor: COLORS.accent,
   },
+  quickTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: THEME.spacing.sm,
+    marginBottom: THEME.spacing.md,
+  },
   quickTitle: {
     fontSize: THEME.fonts.medium,
     fontWeight: 'bold',
     color: COLORS.dark,
-    marginBottom: THEME.spacing.md,
+  },
+  quickTipRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    marginBottom: THEME.spacing.sm,
   },
   quickText: {
     fontSize: THEME.fonts.regular,
     color: COLORS.darkGray,
-    marginBottom: THEME.spacing.sm,
     lineHeight: 20,
+    flex: 1,
   },
 });

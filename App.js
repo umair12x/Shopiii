@@ -1,8 +1,8 @@
 import React from 'react';
-import { Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { DataProvider } from './src/context/DataContext';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { DailyBookScreen } from './src/screens/DailyBookScreen';
@@ -14,12 +14,21 @@ import { COLORS } from './src/config/colors';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// Tab Icons Component (using emoji instead of vector icons)
-const TabIcon = ({ focused, emoji }) => {
+const TAB_ICONS = {
+  Home: 'home-outline',
+  DailyBook: 'clipboard-text-outline',
+  Dashboard: 'chart-line',
+  History: 'history',
+  Settings: 'cog-outline',
+};
+
+const TabIcon = ({ focused, iconName }) => {
   return (
-    <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.6 }}>
-      {emoji}
-    </Text>
+    <MaterialCommunityIcons
+      name={iconName}
+      size={focused ? 26 : 24}
+      color={focused ? COLORS.primary : COLORS.gray}
+    />
   );
 };
 
@@ -31,13 +40,9 @@ function HomeTabs() {
         tabBarActiveTintColor: COLORS.primary,
         tabBarInactiveTintColor: COLORS.gray,
         tabBarIcon: ({ focused }) => {
-          let emoji = '🏠';
-          if (route.name === 'DailyBook') emoji = '📝';
-          else if (route.name === 'Dashboard') emoji = '📊';
-          else if (route.name === 'History') emoji = '📋';
-          else if (route.name === 'Settings') emoji = '⚙️';
+          const iconName = TAB_ICONS[route.name] || TAB_ICONS.Home;
 
-          return <TabIcon focused={focused} emoji={emoji} />;
+          return <TabIcon focused={focused} iconName={iconName} />;
         },
       })}
     >

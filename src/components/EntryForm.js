@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, THEME } from '../config/colors';
 
 export const EntryForm = ({ visible, onClose, onSubmit, editData = null, itemCount = 0 }) => {
@@ -53,7 +54,9 @@ export const EntryForm = ({ visible, onClose, onSubmit, editData = null, itemCou
           <View style={styles.form}>
             <View style={styles.header}>
               <Text style={styles.title}>{editData ? 'Edit Entry' : 'Add Entry'}</Text>
-              <TouchableOpacity onPress={handleClose} style={styles.close}><Text style={styles.closeText}>✕</Text></TouchableOpacity>
+              <TouchableOpacity onPress={handleClose} style={styles.close} accessibilityLabel="Close form">
+                <MaterialCommunityIcons name="close" size={22} color={COLORS.muted} />
+              </TouchableOpacity>
             </View>
 
             <View style={styles.field}>
@@ -73,8 +76,14 @@ export const EntryForm = ({ visible, onClose, onSubmit, editData = null, itemCou
             </View>
 
             <View style={styles.actions}>
-              <TouchableOpacity onPress={handleClose} style={[styles.btn, styles.btnGhost]}><Text style={styles.btnGhostText}>Cancel</Text></TouchableOpacity>
-              <TouchableOpacity onPress={handleSubmit} style={[styles.btn, styles.btnPrimary]}><Text style={styles.btnPrimaryText}>{editData ? 'Update' : 'Add'}</Text></TouchableOpacity>
+              <TouchableOpacity onPress={handleClose} style={[styles.btn, styles.btnGhost]}>
+                <MaterialCommunityIcons name="close" size={18} color={COLORS.muted} />
+                <Text style={styles.btnGhostText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleSubmit} style={[styles.btn, styles.btnPrimary]}>
+                <MaterialCommunityIcons name={editData ? 'content-save-outline' : 'plus-circle-outline'} size={18} color={COLORS.white} />
+                <Text style={styles.btnPrimaryText}>{editData ? 'Update' : 'Add'}</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -90,14 +99,13 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: THEME.spacing.md },
   title: { fontSize: THEME.fonts.lg, color: COLORS.text, fontWeight: '700' },
   close: { padding: 6 },
-  closeText: { fontSize: 18, color: COLORS.muted },
   field: { marginBottom: THEME.spacing.md },
   fieldRow: { flexDirection: 'row', gap: THEME.spacing.sm, marginBottom: THEME.spacing.md },
   fieldHalf: { flex: 1 },
   label: { fontSize: THEME.fonts.sm, color: COLORS.muted, marginBottom: 6 },
   input: { backgroundColor: 'rgba(11,19,32,0.03)', padding: THEME.spacing.sm, borderRadius: THEME.borderRadius.sm, color: COLORS.text },
   actions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: THEME.spacing.sm },
-  btn: { flex: 1, paddingVertical: 12, borderRadius: THEME.borderRadius.sm, alignItems: 'center', justifyContent: 'center' },
+  btn: { flex: 1, paddingVertical: 12, borderRadius: THEME.borderRadius.sm, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 },
   btnGhost: { backgroundColor: 'transparent', borderWidth: 1, borderColor: 'rgba(11,19,32,0.06)', marginRight: THEME.spacing.sm },
   btnGhostText: { color: COLORS.muted, fontWeight: '700' },
   btnPrimary: { backgroundColor: COLORS.accent, marginLeft: THEME.spacing.sm },

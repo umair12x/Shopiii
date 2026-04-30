@@ -10,6 +10,7 @@ import {
   FlatList,
   Modal,
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { DataContext } from '../context/DataContext';
 import { EntryItem } from '../components/EntryItem';
@@ -43,7 +44,10 @@ export const PreviousAccountsScreen = () => {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Account History</Text>
+          <View style={styles.headerRow}>
+            <MaterialCommunityIcons name="history" size={24} color={COLORS.white} />
+            <Text style={styles.title}>Account History</Text>
+          </View>
           <Text style={styles.subtitle}>View past transactions</Text>
         </View>
 
@@ -55,14 +59,14 @@ export const PreviousAccountsScreen = () => {
             setPickerOpen(true);
           }}
         >
-          <Text style={styles.datePickerIcon}>📅</Text>
+          <MaterialCommunityIcons name="calendar-outline" size={24} color={COLORS.primary} style={styles.datePickerIcon} />
           <View style={styles.datePickerContent}>
             <Text style={styles.datePickerLabel}>Select Date</Text>
             <Text style={styles.datePickerValue}>
               {formatDateDisplay(tempDate)}
             </Text>
           </View>
-          <Text style={styles.datePickerArrow}>›</Text>
+          <MaterialCommunityIcons name="chevron-right" size={28} color={COLORS.gray} />
         </TouchableOpacity>
 
         {/* Totals Summary */}
@@ -84,7 +88,7 @@ export const PreviousAccountsScreen = () => {
           )}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyIcon}>📋</Text>
+              <MaterialCommunityIcons name="history" size={72} color={COLORS.primary} style={styles.emptyIcon} />
               <Text style={styles.emptyText}>No entries for this date</Text>
               <Text style={styles.emptySubtext}>
                 Select a different date to view past records
@@ -104,7 +108,7 @@ export const PreviousAccountsScreen = () => {
                   onPress={() => setPickerOpen(false)}
                   style={styles.pickerCloseBtn}
                 >
-                  <Text style={styles.pickerCloseBtnText}>✕</Text>
+                  <MaterialCommunityIcons name="close" size={22} color={COLORS.gray} />
                 </TouchableOpacity>
                 <Text style={styles.pickerTitle}>Select Date</Text>
                 <View style={{ width: 40 }} />
@@ -122,6 +126,7 @@ export const PreviousAccountsScreen = () => {
                 style={styles.pickerConfirmBtn}
                 onPress={() => handleDateConfirm(pickerDraftDate)}
               >
+                <MaterialCommunityIcons name="check" size={18} color={COLORS.white} />
                 <Text style={styles.pickerConfirmBtnText}>Confirm</Text>
               </TouchableOpacity>
             </View>
@@ -141,20 +146,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: THEME.spacing.lg,
     paddingVertical: THEME.spacing.lg,
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: THEME.spacing.sm,
+    marginBottom: THEME.spacing.sm,
+  },
   title: {
     fontSize: THEME.fonts.xl,
     fontWeight: '700',
     color: COLORS.white,
-    marginBottom: THEME.spacing.sm,
   },
   subtitle: { fontSize: THEME.fonts.sm, color: 'rgba(255,255,255,0.9)' },
-  datePickerIcon: { fontSize: 24, marginRight: THEME.spacing.md },
+  datePickerIcon: { marginRight: THEME.spacing.md },
   datePickerContent: {
     flex: 1,
   },
   datePickerLabel: { fontSize: THEME.fonts.sm, color: COLORS.gray, marginBottom: THEME.spacing.xs },
   datePickerValue: { fontSize: THEME.fonts.md, fontWeight: '700', color: COLORS.text },
-  datePickerArrow: { fontSize: THEME.fonts.xl, color: COLORS.gray },
   listContent: { paddingHorizontal: THEME.spacing.lg, paddingBottom: THEME.spacing.lg },
   entryItemWrapper: {
     marginBottom: THEME.spacing.md,
@@ -165,7 +174,6 @@ const styles = StyleSheet.create({
     paddingVertical: 80,
   },
   emptyIcon: {
-    fontSize: 64,
     marginBottom: THEME.spacing.lg,
   },
   emptyText: { fontSize: THEME.fonts.xl, fontWeight: '700', color: COLORS.text, marginBottom: THEME.spacing.sm },
@@ -191,11 +199,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  pickerCloseBtnText: {
-    fontSize: 20,
-    color: COLORS.gray,
-  },
   pickerTitle: { fontSize: THEME.fonts.lg, fontWeight: '700', color: COLORS.text },
-  pickerConfirmBtn: { marginHorizontal: THEME.spacing.lg, marginTop: THEME.spacing.lg, paddingVertical: THEME.spacing.md, backgroundColor: COLORS.primary, borderRadius: THEME.borderRadius.sm, alignItems: 'center' },
+  pickerConfirmBtn: { marginHorizontal: THEME.spacing.lg, marginTop: THEME.spacing.lg, paddingVertical: THEME.spacing.md, backgroundColor: COLORS.primary, borderRadius: THEME.borderRadius.sm, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 },
   pickerConfirmBtnText: { fontSize: THEME.fonts.lg, fontWeight: '700', color: COLORS.white },
 });

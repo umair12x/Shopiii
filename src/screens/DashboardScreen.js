@@ -10,6 +10,7 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LineChart, BarChart } from 'react-native-chart-kit';
 import { DataContext } from '../context/DataContext';
 import { COLORS, THEME } from '../config/colors';
@@ -192,7 +193,10 @@ export const DashboardScreen = () => {
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Analytics Dashboard</Text>
+          <View style={styles.headerRow}>
+            <MaterialCommunityIcons name="chart-line" size={24} color={COLORS.white} />
+            <Text style={styles.title}>Analytics Dashboard</Text>
+          </View>
           <Text style={styles.subtitle}>Track your business performance</Text>
         </View>
 
@@ -202,6 +206,11 @@ export const DashboardScreen = () => {
             style={[styles.tab, activeTab === '30days' && styles.activeTab]}
             onPress={() => setActiveTab('30days')}
           >
+            <MaterialCommunityIcons
+              name="calendar-month-outline"
+              size={18}
+              color={activeTab === '30days' ? COLORS.white : COLORS.gray}
+            />
             <Text
               style={[
                 styles.tabText,
@@ -215,6 +224,11 @@ export const DashboardScreen = () => {
             style={[styles.tab, activeTab === 'year' && styles.activeTab]}
             onPress={() => setActiveTab('year')}
           >
+            <MaterialCommunityIcons
+              name="calendar-outline"
+              size={18}
+              color={activeTab === 'year' ? COLORS.white : COLORS.gray}
+            />
             <Text
               style={[
                 styles.tabText,
@@ -285,7 +299,10 @@ export const DashboardScreen = () => {
 
         {/* Stats Section */}
         <View style={styles.statsContainer}>
-          <Text style={styles.statsTitle}>📊 Key Metrics</Text>
+          <View style={styles.sectionTitleRow}>
+            <MaterialCommunityIcons name="chart-line" size={20} color={COLORS.dark} />
+            <Text style={styles.statsTitle}>Key Metrics</Text>
+          </View>
 
           {last30Days && (
             <View style={styles.statCard}>
@@ -365,10 +382,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: THEME.spacing.lg,
     paddingVertical: THEME.spacing.lg,
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: THEME.spacing.sm,
+    marginBottom: THEME.spacing.sm,
+  },
   title: { fontSize: THEME.fonts.xl, fontWeight: '700', color: COLORS.white, marginBottom: THEME.spacing.sm },
   subtitle: { fontSize: THEME.fonts.sm, color: 'rgba(255,255,255,0.9)' },
   tabContainer: { flexDirection: 'row', paddingHorizontal: THEME.spacing.lg, paddingTop: THEME.spacing.lg, gap: THEME.spacing.md },
-  tab: { flex: 1, paddingVertical: THEME.spacing.md, borderRadius: THEME.borderRadius.sm, backgroundColor: COLORS.lightGray, alignItems: 'center' },
+  tab: { flex: 1, paddingVertical: THEME.spacing.md, borderRadius: THEME.borderRadius.sm, backgroundColor: COLORS.lightGray, alignItems: 'center', gap: 6 },
   activeTab: {
     backgroundColor: COLORS.primary,
   },
@@ -394,11 +417,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: THEME.spacing.lg,
     paddingVertical: THEME.spacing.lg,
   },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: THEME.spacing.sm,
+    marginBottom: THEME.spacing.lg,
+  },
   statsTitle: {
     fontSize: THEME.fonts.large,
     fontWeight: 'bold',
     color: COLORS.dark,
-    marginBottom: THEME.spacing.lg,
   },
   statCard: {
     backgroundColor: COLORS.light,

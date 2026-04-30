@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, THEME } from '../config/colors';
 import { formatCurrency } from '../utils/currencyFormatter';
 
@@ -8,12 +9,15 @@ export const SummaryCard = ({
   amount,
   backgroundColor = COLORS.surface,
   textColor = COLORS.text,
-  icon = '📊',
+  iconName = 'chart-line',
+  iconColor = COLORS.primary,
 }) => {
   return (
     <View style={[styles.card, { backgroundColor }] }>
       <View style={styles.row}>
-        <Text style={styles.icon}>{icon}</Text>
+        <View style={styles.iconWrap}>
+          <MaterialCommunityIcons name={iconName} size={20} color={iconColor} />
+        </View>
         <Text style={[styles.title, { color: textColor }]}>{title}</Text>
       </View>
       <Text style={[styles.amount, { color: textColor }]}>
@@ -37,8 +41,13 @@ const styles = StyleSheet.create({
     gap: THEME.spacing.sm,
     marginBottom: THEME.spacing.sm,
   },
-  icon: {
-    fontSize: 22,
+  iconWrap: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(11,19,32,0.06)',
   },
   title: {
     fontSize: THEME.fonts.sm,

@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, THEME } from '../config/colors';
 import { formatCurrency } from '../utils/currencyFormatter';
 
@@ -41,15 +42,20 @@ export const EntryItem = ({ entry, onEdit, onDelete, onTogglePayment }) => {
           onPress={() => onTogglePayment(entry.id)}
           style={[styles.paymentBtn, entry.isPaymentCollected ? styles.collected : styles.pending]}
         >
-          <Text style={styles.paymentText}>{entry.isPaymentCollected ? '✓ Collected' : '⏳ Pending'}</Text>
+          <MaterialCommunityIcons
+            name={entry.isPaymentCollected ? 'check-circle-outline' : 'clock-outline'}
+            size={16}
+            color={entry.isPaymentCollected ? COLORS.success : COLORS.warning}
+          />
+          <Text style={styles.paymentText}>{entry.isPaymentCollected ? 'Collected' : 'Pending'}</Text>
         </TouchableOpacity>
 
         <View style={styles.rowBtns}>
           <TouchableOpacity onPress={() => onEdit(entry)} style={styles.iconBtn}>
-            <Text style={styles.iconText}>✎</Text>
+            <MaterialCommunityIcons name="pencil" size={18} color={COLORS.text} />
           </TouchableOpacity>
           <TouchableOpacity onPress={handleDelete} style={[styles.iconBtn, styles.deleteBtn]}>
-            <Text style={styles.iconText}>🗑</Text>
+            <MaterialCommunityIcons name="trash-can-outline" size={18} color={COLORS.error} />
           </TouchableOpacity>
         </View>
       </View>
@@ -105,6 +111,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: THEME.borderRadius.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   collected: {
     backgroundColor: 'rgba(46,125,50,0.12)',
@@ -131,9 +140,5 @@ const styles = StyleSheet.create({
   },
   deleteBtn: {
     backgroundColor: 'rgba(198,40,40,0.08)',
-  },
-  iconText: {
-    fontSize: 16,
-    color: COLORS.text,
   },
 });
