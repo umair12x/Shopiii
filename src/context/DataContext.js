@@ -5,6 +5,7 @@ export const DataContext = createContext();
 
 export const DataProvider = ({ children }) => {
   const [entries, setEntries] = useState([]);
+  const [productPrices, setProductPrices] = useState([]);
   const [shopDetails, setShopDetails] = useState({
     name: 'Shopiii',
     owner: 'Your Name',
@@ -14,14 +15,8 @@ export const DataProvider = ({ children }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
 
-  // Load initial data
-  useEffect(() => {
-    loadShopDetails();
-    loadEntriesForDate(new Date());
-  }, []);
-
   // Load shop details from storage
-  const loadShopDetails = async () => {
+  const loadShopDetails = useCallback(async () => {
     try {
       const stored = await AsyncStorage.getItem('shopDetails');
       if (stored) {
@@ -30,7 +25,7 @@ export const DataProvider = ({ children }) => {
     } catch (error) {
       console.error('Error loading shop details:', error);
     }
-  };
+  }, []);
 
   // Load entries for a specific date
   const loadEntriesForDate = useCallback(async (date) => {
@@ -50,6 +45,24 @@ export const DataProvider = ({ children }) => {
     }
   }, []);
 
+  // Load product prices from storage
+  const loadProductPrices = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('product_prices');
+      setProductPrices(stored ? JSON.parse(stored) : []);
+    } catch (error) {
+      console.error('Error loading product prices:', error);
+      setProductPrices([]);
+    }
+  }, []);
+
+  // Load initial data
+  useEffect(() => {
+    loadShopDetails();
+    loadEntriesForDate(new Date());
+    loadProductPrices();
+  }, [loadEntriesForDate, loadProductPrices, loadShopDetails]);
+
   // Format date for storage key (YYYY-MM-DD)
   const formatDateKey = (date) => {
     return date.toISOString().split('T')[0];
@@ -63,6 +76,16 @@ export const DataProvider = ({ children }) => {
       setEntries(newEntries);
     } catch (error) {
       console.error('Error saving entries:', error);
+    }
+  };
+
+  // Save product prices to storage
+  const saveProductPrices = async (newProducts) => {
+    try {
+      await AsyncStorage.setItem('product_prices', JSON.stringify(newProducts));
+      setProductPrices(newProducts);
+    } catch (error) {
+      console.error('Error saving product prices:', error);
     }
   };
 
@@ -110,6 +133,65 @@ export const DataProvider = ({ children }) => {
         : entry
     );
     await saveEntries(updatedEntries);
+  };
+
+  const normalizeText = (value) => (value ? String(value).trim() : '');
+
+  const normalizePrice = (value) => {
+    const parsed = parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  const getProductByBarcode = (barcode) => {
+    const normalizedBarcode = normalizeText(barcode);
+
+    if (!normalizedBarcode) {
+      return null;
+    }
+
+    return productPrices.find(
+      (product) => normalizeText(product.barcode) === normalizedBarcode,
+    ) || null;
+  };
+
+  const upsertProductPrice = async (product) => {
+    const normalizedBarcode = normalizeText(product.barcode);
+    const normalizedName = normalizeText(product.productName) || 'Unnamed Product';
+    const purchasePrice = normalizePrice(product.purchasePrice);
+    const salePrice = normalizePrice(product.salePrice);
+    const now = new Date().toISOString();
+
+    const existingIndex = productPrices.findIndex(
+      (item) => item.id === product.id || (
+        normalizedBarcode && normalizeText(item.barcode) === normalizedBarcode
+      ),
+    );
+
+    const nextProduct = {
+      id: product.id || productPrices[existingIndex]?.id || Date.now().toString(),
+      barcode: normalizedBarcode,
+      productName: normalizedName,
+      purchasePrice,
+      salePrice,
+      notes: normalizeText(product.notes),
+      createdAt: productPrices[existingIndex]?.createdAt || product.createdAt || now,
+      updatedAt: now,
+    };
+
+    const updatedProducts = [...productPrices];
+
+    if (existingIndex >= 0) {
+      updatedProducts[existingIndex] = nextProduct;
+    } else {
+      updatedProducts.push(nextProduct);
+    }
+
+    await saveProductPrices(updatedProducts);
+  };
+
+  const deleteProductPrice = async (productId) => {
+    const updatedProducts = productPrices.filter((product) => product.id !== productId);
+    await saveProductPrices(updatedProducts);
   };
 
   // Calculate totals
@@ -177,9 +259,11 @@ export const DataProvider = ({ children }) => {
 
   const value = {
     entries,
+    productPrices,
     shopDetails,
     selectedDate,
     loading,
+    loadProductPrices,
     formatDateKey,
     addEntry,
     updateEntry,
@@ -189,6 +273,9 @@ export const DataProvider = ({ children }) => {
     getEntriesForDateRange,
     updateShopDetails,
     changeDate,
+    getProductByBarcode,
+    upsertProductPrice,
+    deleteProductPrice,
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
