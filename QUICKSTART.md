@@ -107,6 +107,13 @@ pnpm start -c
 - App stores data locally on your phone
 - Make sure you don't clear app data
 
+### "Firebase error(auth/configuration-not-found)"
+1. Open Firebase Console for your project
+2. Go to **Authentication -> Get started**
+3. Open **Sign-in method**
+4. Enable **Anonymous** provider
+5. Restart the app
+
 ## Shop Details
 
 You can update shop details anytime:

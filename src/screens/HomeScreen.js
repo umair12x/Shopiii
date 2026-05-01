@@ -181,7 +181,7 @@ const DetailChip = React.memo(({ icon, label, value }) => (
 
 // ─── Sync Status ───
 const SyncStatus = React.memo(
-  ({ lastSyncTime, isSynced, syncStatus, dataStorageAge, onSync }) => {
+  ({ lastSyncTime, isSynced, syncStatus, syncMessage, dataStorageAge, onSync }) => {
     const isSyncing = syncStatus === "syncing";
     const spin = useAnimatedValue(0);
 
@@ -211,6 +211,8 @@ const SyncStatus = React.memo(
         : COLORS.error || "#ef4444";
     const msg = isSyncing
       ? "Syncing..."
+      : syncStatus === "error" && syncMessage
+        ? syncMessage
       : lastSyncTime
         ? `Synced ${formatTimeAgo(lastSyncTime)}`
         : dataStorageAge
@@ -276,6 +278,7 @@ export const HomeScreen = () => {
     lastSyncTime,
     isSynced,
     syncStatus,
+    syncMessage,
     dataStorageAge,
     uploadToFirebase,
   } = useContext(DataContext);
@@ -555,6 +558,7 @@ export const HomeScreen = () => {
             lastSyncTime={lastSyncTime}
             isSynced={isSynced}
             syncStatus={syncStatus}
+            syncMessage={syncMessage}
             dataStorageAge={dataStorageAge}
             onSync={handleSync}
           />

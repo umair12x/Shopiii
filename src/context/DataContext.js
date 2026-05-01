@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ref, get, set } from 'firebase/database';
-import { FIREBASE_ENABLED, firebaseDatabase } from '../config/firebaseConfig';
+import { FIREBASE_ENABLED, firebaseDatabase, ensureSignedIn } from '../config/firebaseConfig';
 
 export const DataContext = createContext();
 
@@ -22,6 +22,7 @@ export const DataProvider = ({ children }) => {
   const [lastSyncTime, setLastSyncTime] = useState(null);
   const [isSynced, setIsSynced] = useState(false);
   const [syncStatus, setSyncStatus] = useState('idle'); // idle, syncing, success, error
+  const [syncMessage, setSyncMessage] = useState('');
   const [dataStorageAge, setDataStorageAge] = useState(null);
 
   // Load shop details from storage
@@ -314,6 +315,20 @@ export const DataProvider = ({ children }) => {
     return ref(firebaseDatabase, FIREBASE_ROOT_PATH);
   };
 
+  const ensureSignedInIfAvailable = async () => {
+    try {
+      await ensureSignedIn();
+      return { signedIn: true, authConfigMissing: false };
+    } catch (error) {
+      if (error?.code === 'auth/configuration-not-found') {
+        // Allow sync to continue for setups that use open dev rules.
+        console.warn('Firebase Auth provider is not configured; attempting sync without auth.');
+        return { signedIn: false, authConfigMissing: true };
+      }
+      throw error;
+    }
+  };
+
   const loadLocalSnapshot = async () => {
     const allKeys = await AsyncStorage.getAllKeys();
     const entryKeys = allKeys.filter((key) => key.startsWith('entries_'));
@@ -343,9 +358,15 @@ export const DataProvider = ({ children }) => {
       return { success: false, message: 'Firebase not configured' };
     }
     try {
+      // Attempt auth first; continue without auth if provider is not configured.
+      const authState = await ensureSignedInIfAvailable();
       setSyncStatus('syncing');
+      setSyncMessage('');
       const snapshot = await loadLocalSnapshot();
       const cloudRoot = getCloudRootRef();
+      const successMessage = authState.authConfigMissing
+        ? 'Synced without Firebase Auth. Enable Anonymous sign-in and secure DB rules before production.'
+        : 'Data synced successfully';
 
       await set(cloudRoot, {
         entriesByDate: snapshot.entriesByDate,
@@ -364,11 +385,20 @@ export const DataProvider = ({ children }) => {
         lastDataModified: new Date().toISOString(),
       });
       setSyncStatus('success');
+      setSyncMessage(successMessage);
       setIsSynced(true);
-      return { success: true, message: 'Data synced successfully' };
+      return { success: true, message: successMessage };
     } catch (error) {
       console.error('Error uploading to Firebase:', error);
       setSyncStatus('error');
+      if (error?.code === 'PERMISSION_DENIED' || String(error?.message || '').includes('permission_denied')) {
+        setSyncMessage('Realtime Database denied write. Enable Anonymous sign-in and use auth-based DB rules, or relax rules for development.');
+        return {
+          success: false,
+          message: 'Realtime Database denied write. Either enable Anonymous auth (recommended) or temporarily relax DB rules for development.',
+        };
+      }
+      setSyncMessage(error?.message || 'Sync failed');
       return { success: false, message: error.message };
     }
   }, [entries, productPrices, shopDetails]);
@@ -380,12 +410,16 @@ export const DataProvider = ({ children }) => {
       return { success: false, message: 'Firebase not configured' };
     }
     try {
+      // Attempt auth first; continue without auth if provider is not configured.
+      const authState = await ensureSignedInIfAvailable();
       setSyncStatus('syncing');
+      setSyncMessage('');
       const cloudRoot = getCloudRootRef();
       const snapshot = await get(cloudRoot);
 
       if (!snapshot.exists()) {
         setSyncStatus('error');
+        setSyncMessage('No cloud data found');
         return { success: false, message: 'No cloud data found' };
       }
 
@@ -417,10 +451,25 @@ export const DataProvider = ({ children }) => {
       });
       
       setSyncStatus('success');
+      setSyncMessage('Data fetched successfully');
+      if (authState.authConfigMissing) {
+        return {
+          success: true,
+          message: 'Data fetched without Firebase Auth. Enable Anonymous sign-in and secure DB rules before production.',
+        };
+      }
       return { success: true, message: 'Data fetched successfully' };
     } catch (error) {
       console.error('Error fetching from Firebase:', error);
       setSyncStatus('error');
+      if (error?.code === 'PERMISSION_DENIED' || String(error?.message || '').includes('permission_denied')) {
+        setSyncMessage('Realtime Database denied read. Enable Anonymous sign-in and use auth-based DB rules, or relax rules for development.');
+        return {
+          success: false,
+          message: 'Realtime Database denied read. Either enable Anonymous auth (recommended) or temporarily relax DB rules for development.',
+        };
+      }
+      setSyncMessage(error?.message || 'Sync failed');
       return { success: false, message: error.message };
     }
   }, [selectedDate, shopDetails]);
@@ -448,6 +497,7 @@ export const DataProvider = ({ children }) => {
     lastSyncTime,
     isSynced,
     syncStatus,
+    syncMessage,
     dataStorageAge,
     uploadToFirebase,
     fetchFromFirebase,

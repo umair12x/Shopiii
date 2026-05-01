@@ -1,5 +1,27 @@
 import { getApp, getApps, initializeApp } from 'firebase/app';
 import { getDatabase } from 'firebase/database';
+import {
+  signInAnonymously,
+  onAuthStateChanged,
+  initializeAuth,
+  getReactNativePersistence,
+} from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const mapFirebaseAuthError = (err) => {
+  if (!err || typeof err !== 'object') return err;
+
+  if (err.code === 'auth/configuration-not-found') {
+    const actionable = new Error(
+      'Firebase Authentication is not configured. In Firebase Console, go to Authentication -> Get started -> Sign-in method, and enable Anonymous provider.'
+    );
+    actionable.code = err.code;
+    actionable.originalMessage = err.message;
+    return actionable;
+  }
+
+  return err;
+};
 
 const readEnv = (key) => (process.env[key] || '').trim();
 
@@ -27,3 +49,38 @@ export const firebaseApp = FIREBASE_ENABLED
   : null;
 
 export const firebaseDatabase = firebaseApp ? getDatabase(firebaseApp) : null;
+
+// Initialize Auth with React Native persistence when Firebase is enabled
+export const firebaseAuth = firebaseApp
+  ? initializeAuth(firebaseApp, { persistence: getReactNativePersistence(AsyncStorage) })
+  : null;
+
+// Ensure the app has an authenticated user (anonymous sign-in fallback)
+export const ensureSignedIn = async () => {
+  if (!FIREBASE_ENABLED) throw new Error('Firebase not configured');
+  if (!firebaseAuth) throw new Error('Firebase Auth not available');
+
+  // If already signed in, resolve immediately
+  if (firebaseAuth.currentUser) return firebaseAuth.currentUser;
+
+  // Try to sign in anonymously and resolve when auth state changes
+  return new Promise((resolve, reject) => {
+    const unsubscribe = onAuthStateChanged(firebaseAuth, (user) => {
+      if (user) {
+        unsubscribe();
+        resolve(user);
+      }
+    }, (err) => {
+      unsubscribe();
+      reject(mapFirebaseAuthError(err));
+    });
+
+    // Attempt anonymous sign-in
+    signInAnonymously(firebaseAuth).catch((err) => {
+      // If sign-in fails, let onAuthStateChanged handle rejection via its error callback
+      // but also reject here to avoid hanging
+      try { unsubscribe(); } catch (e) {}
+      reject(mapFirebaseAuthError(err));
+    });
+  });
+};

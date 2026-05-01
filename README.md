@@ -146,23 +146,27 @@ To enable cloud sync and backup:
    - Create a new project named "Shopiii"
    - Enable Realtime Database or Firestore
 
-2. **Get Firebase Credentials**
-   - Go to Project Settings → Service Accounts
-   - Copy your config values
+2. **Get Web App Credentials**
+   - Go to Project Settings -> General
+   - In "Your apps", create/select a Web app
+   - Copy Firebase SDK config values
 
-3. **Update Firebase Config**
+3. **Enable Authentication (Required for Cloud Sync)**
+   - Go to Authentication -> Get started
+   - Open Sign-in method
+   - Enable **Anonymous** provider (minimum required)
+
+4. **Update Firebase Config**
    - Edit `src/config/firebaseConfig.js`
-   - Replace placeholder values with your credentials
-   - Set `FIREBASE_ENABLED = true`
+   - Provide values through Expo public env vars (`EXPO_PUBLIC_FIREBASE_*`)
+   - `FIREBASE_ENABLED` turns true automatically when required env vars are present
 
-4. **Security Rules** (Firestore)
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if request.auth != null;
-    }
+5. **Realtime Database Rules** (if using Realtime Database)
+```json
+{
+  "rules": {
+    ".read": "auth != null",
+    ".write": "auth != null"
   }
 }
 ```
@@ -234,6 +238,11 @@ pendingAmount = totalSalesOfPendingPayments
 ### Data Not Saving
 - Check AsyncStorage permissions
 - Ensure app has storage permissions on device
+
+### Firebase Error: `auth/configuration-not-found`
+- In Firebase Console, open Authentication -> Get started -> Sign-in method
+- Enable **Anonymous** sign-in
+- Rebuild/restart the app after enabling provider
 
 ### Charts Not Showing
 - Verify react-native-chart-kit is installed
