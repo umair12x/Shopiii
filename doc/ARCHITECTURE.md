@@ -1,263 +1,175 @@
 # Shopiii - Architecture & Code Organization
 
-## Project Structure
+This document describes how Shopiii is structured, how data flows through the app, and where the main responsibilities live.
+
+## Repository Layout
 
 ```
 shopiii/
-├── src/
-│   ├── screens/
-│   │   ├── HomeScreen.js           # Shop overview & summary
-│   │   ├── DailyBookScreen.js      # Core transaction management
-│   │   ├── DashboardScreen.js      # Analytics & charts
-│   │   ├── PreviousAccountsScreen.js # Historical data
-│   │   └── SettingsScreen.js       # Configuration
-│   │
-│   ├── components/
-│   │   ├── SummaryCard.js          # Reusable card component
-│   │   ├── EntryForm.js            # Transaction input modal
-│   │   ├── EntryItem.js            # Individual transaction display
-│   │   └── TotalsSummary.js        # Fixed totals header
-│   │
-│   ├── context/
-│   │   └── DataContext.js          # Global state management
-│   │
-│   ├── utils/
-│   │   ├── currencyFormatter.js    # PKR formatting & number helpers
-│   │   └── dateUtils.js            # Date manipulation utilities
-│   │
-│   └── config/
-│       ├── colors.js               # Theme & color constants
-│       └── firebaseConfig.js       # Firebase configuration
-│
-├── App.js                          # Navigation setup
-├── app.json                        # Expo configuration
-├── package.json                    # Dependencies
-├── README.md                       # Full documentation
-├── QUICKSTART.md                   # Quick start guide
-└── ARCHITECTURE.md                 # This file
+├── App.js
+├── app.json
+├── package.json
+├── README.md
+├── QUICKSTART.md
+└── doc/
+    ├── ARCHITECTURE.md
+    ├── DATA_MODEL.md
+    ├── FEATURES.md
+    ├── FIREBASE.md
+    ├── SETUP.md
+    └── TROUBLESHOOTING.md
+
+src/
+├── components/
+├── config/
+├── context/
+├── screens/
+└── utils/
 ```
 
-## Data Flow Architecture
+## Runtime Architecture
 
-```
-┌─────────────────────────────────────┐
-│         App.js (Navigation)         │
-│  (Stack & Tab Navigation Setup)     │
-└────────────────┬────────────────────┘
-                 │
-┌────────────────▼────────────────────┐
-│      DataProvider (Context)         │
-│  (Global State Management via       │
-│   AsyncStorage)                     │
-└────────────────┬────────────────────┘
-                 │
-    ┌────────────┼────────────────┐
-    │            │                │
-    ▼            ▼                ▼
-┌─────────┐ ┌──────────┐ ┌──────────────┐
-│ Screens │ │Components│ │ Utilities    │
-│         │ │          │ │              │
-│ Home    │ │Summary   │ │ Formatters   │
-│ Daily   │ │Entry     │ │ Date Utils   │
-│ Book    │ │Total     │ │ Colors      │
-│ Dashboard│ │Form     │ │ Firebase    │
-│ History │ │          │ │              │
-│ Settings│ │          │ │              │
-└─────────┘ └──────────┘ └──────────────┘
+1. `App.js` creates the navigation tree and wraps the app in `DataProvider`.
+2. `DataProvider` owns local state, persistence, and cloud sync.
+3. Screens read and update shared state through `DataContext`.
+4. Utilities keep formatting and date logic separate from UI.
+
+### Data Flow
+
+```mermaid
+flowchart TD
+  A[App.js] --> B[DataProvider]
+  B --> C[AsyncStorage]
+  B --> D[Firebase Realtime Database]
+  B --> E[Screens]
+  E --> F[Components]
+  E --> G[Utilities]
 ```
 
-## State Management (DataContext)
+## Navigation Structure
 
-### Context provides:
-- `entries`: Current day's entries array
-- `shopDetails`: Shop information object
-- `selectedDate`: Currently viewed date
-- `loading`: Loading state indicator
+`App.js` defines:
 
-### Key Methods:
-```javascript
-// CRUD Operations
-addEntry(entry)              // Add new transaction
-updateEntry(id, data)        // Update existing transaction
-deleteEntry(id)              // Remove transaction
-togglePaymentStatus(id)      // Toggle Pending/Collected
+- A root stack navigator
+- A bottom tab navigator with these screens:
+  - Home
+  - Daily Book
+  - Products
+  - History
+  - Dashboard
+  - Settings
 
-// Data Querying
-calculateTotals()            // Get today's summary stats
-getEntriesForDateRange()     // Query historical data
-formatDateKey(date)          // Convert date to storage key
+The app uses a custom floating tab bar and `MaterialCommunityIcons` for navigation icons.
 
-// Configuration
-updateShopDetails(details)   // Update shop information
-changeDate(date)             // Switch active date
-```
+## State Management
 
-## Data Structure
+`src/context/DataContext.js` is the primary state layer.
 
-### Entry Object
-```javascript
-{
-  id: "1714464721234",           // Unique timestamp-based ID
-  date: "2024-04-30",            // YYYY-MM-DD format
-  itemName: "Item 1",            // User-defined item name
-  purchasePrice: 100,            // Cost to business
-  salePrice: 150,                // Selling price
-  profit: 50,                    // Auto-calculated (sale - purchase)
-  isPaymentCollected: false,     // Payment status toggle
-  createdAt: "2024-04-30T10:30:00Z" // Timestamp
-}
-```
+### It manages:
 
-### Shop Details Object
-```javascript
-{
-  name: "Shopiii",               // Shop name
-  owner: "Your Name",            // Owner name
-  address: "123 Main St",        // Shop address
-  contact: "+92-300-1234567"    // Contact number
-}
-```
+- Daily entries
+- Product price catalog
+- Shop details
+- Selected date
+- Loading state
+- Sync metadata
+- Firebase sync messages
 
-### AsyncStorage Keys
-- `shopDetails`: Shop configuration
-- `entries_2024-04-30`: Entries for specific date (one key per date)
-- Format: `entries_${YYYY-MM-DD}`
+### It provides actions such as:
 
-## Component Hierarchy
+- `addEntry()`
+- `updateEntry()`
+- `deleteEntry()`
+- `togglePaymentStatus()`
+- `upsertProductPrice()`
+- `deleteProductPrice()`
+- `updateShopDetails()`
+- `changeDate()`
+- `uploadToFirebase()`
+- `fetchFromFirebase()`
 
-```
-App.js
-├── NavigationContainer
-│   └── Stack Navigator
-│       └── Tab Navigator
-│           ├── HomeScreen
-│           │   └── SummaryCard × 4
-│           ├── DailyBookScreen
-│           │   ├── TotalsSummary (Fixed)
-│           │   ├── FlatList
-│           │   │   └── EntryItem × N
-│           │   ├── EntryForm (Modal)
-│           │   └── + Add Button
-│           ├── DashboardScreen
-│           │   ├── LineChart (30 days)
-│           │   └── BarChart (Year)
-│           ├── PreviousAccountsScreen
-│           │   ├── DatePicker (Modal)
-│           │   ├── TotalsSummary
-│           │   └── FlatList
-│           │       └── EntryItem × N (Read-only)
-│           └── SettingsScreen
-│               └── Form Controls
-```
+## Persistence Strategy
 
-## Dependencies & Versions
+### Local storage
 
-### Navigation (React Navigation 7.x)
-- `@react-navigation/native`: Core navigation
-- `@react-navigation/native-stack`: Stack navigator
-- `@react-navigation/bottom-tabs`: Tab navigator
-- `react-native-screens`: Native screen management
-- `react-native-safe-area-context`: Safe area support
-- `react-native-gesture-handler`: Gesture detection
+The app stores user data in AsyncStorage so it works offline.
 
-### Storage & Backend
-- `@react-native-async-storage/async-storage`: Local storage
-- `firebase`: Cloud integration (optional)
+Common keys include:
 
-### UI & Visualization
-- `react-native-chart-kit`: Charts rendering
-- `react-native-date-picker`: Date selection
-- `react-native-svg`: SVG support (for charts)
+- `shopDetails`
+- `product_prices`
+- `entries_YYYY-MM-DD`
+- `syncMetadata`
 
-### Framework
-- `expo`: React Native framework
-- `react`: React core
-- `react-native`: React Native core
+### Cloud sync
 
-## Key Workflows
+Firebase Realtime Database is optional.
 
-### Adding a Transaction
-1. User taps **+ Add Entry** button
-2. EntryForm modal opens
-3. User inputs Item Name, Purchase Price, Sale Price
-4. Form submission calls `DataContext.addEntry()`
-5. Entry saved to AsyncStorage with auto-generated ID
-6. FlatList re-renders to show new entry
+Current sync behavior:
 
-### Viewing Analytics
-1. User navigates to Dashboard tab
-2. DashboardScreen queries last 30 days using `getEntriesForDateRange()`
-3. Data aggregated by date
-4. LineChart renders sales trends
-5. User can toggle between "30 Days" and "This Year"
+- Attempts anonymous auth if available
+- Surfaces auth/rules failures in the Home sync card
+- Can still be used for development setups with relaxed rules
 
-### Tracking Payment
-1. User taps payment button on entry (Pending/Collected)
-2. `togglePaymentStatus()` called
-3. `isPaymentCollected` boolean flipped
-4. Updated entry saved
-5. Visual indicator changes (color/border)
+## Screen Responsibilities
 
-### Viewing History
-1. User selects date from DatePicker
-2. `changeDate()` updates selectedDate in context
-3. `loadEntriesForDate()` queries AsyncStorage
-4. Entries for selected date loaded
-5. TotalsSummary recalculates with historical data
+### Home
 
-## Styling Architecture
+- Shop summary cards
+- Daily/monthly/yearly metrics
+- Sync status card
 
-### Theme System (config/colors.js)
-- **Centralized color palette**: All colors defined in one place
-- **THEME object**: Spacing, fonts, border radius
-- **Semantic colors**: Status-based colors (success, error, warning)
+### Daily Book
 
-### Component Styling
-- **StyleSheet**: React Native StyleSheet for performance
-- **Conditional styles**: Dynamic styling based on data
-- **Responsive**: Uses flexible layouts
+- Add, edit, and delete entries
+- Toggle collected/pending payment status
+- Show totals header
 
-### Color Usage Pattern
-```javascript
-// Example from EntryItem
-const bgColor = isProfit ? COLORS.profitGreen : isLoss ? COLORS.lossRed : COLORS.light;
-const borderColor = entry.isPaymentCollected ? COLORS.success : COLORS.warning;
-```
+### Products
 
-## LocalStorage Strategy
+- Manage product price list
+- Link products to barcodes
+- Use camera scanning on mobile devices
 
-### Data Persistence
-- Uses AsyncStorage for local-only persistence
-- Each date has separate storage key
-- Data survives app restarts
-- No synchronization overhead
+### History
 
-### Backup & Cloud Sync (Future)
-- Firebase config placeholder included
-- Can be upgraded to cloud sync
-- Will allow multi-device access
-- Automatic backup capability
+- Browse entries for a chosen date
+- Read-only historical view
 
-## Configuration
+### Dashboard
 
-### Firebase Setup (Optional)
-1. Create Firebase project
-2. Get credentials from console
-3. Update `src/config/firebaseConfig.js`
-4. Set `FIREBASE_ENABLED = true`
-5. Add Firestore security rules
+- 30-day trend charts
+- Yearly profit chart
+- Analytics summaries
 
-### Shop Details
-- Editable via Settings screen
-- Stored in AsyncStorage
-- Used across app for branding
+### Settings
 
-## Testing Considerations
+- Edit shop profile details
+- Review app/data configuration
+- Access product and sync settings
 
-### Unit Testing
-- Utility functions (formatCurrency, dateUtils)
-- DataContext reducer functions
-- Component prop validation
+## Data Structure Notes
+
+See [DATA_MODEL.md](DATA_MODEL.md) for the full schema.
+
+## Dependencies
+
+- Expo 54
+- React Native 0.81
+- React Navigation 7
+- AsyncStorage
+- Firebase
+- react-native-chart-kit
+- react-native-svg
+- expo-camera
+- @react-native-community/datetimepicker
+
+## Related Docs
+
+- [Project setup](SETUP.md)
+- [Feature guide](FEATURES.md)
+- [Firebase guide](FIREBASE.md)
+- [Troubleshooting](TROUBLESHOOTING.md)
 
 ### Integration Testing
 - Navigation flow
