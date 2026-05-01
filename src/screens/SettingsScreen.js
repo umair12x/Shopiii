@@ -216,6 +216,25 @@ export const SettingsScreen = ({ navigation }) => {
           </View>
         </View>
 
+        {/* Product Prices Shortcut */}
+        <View style={styles.sectionWrapper}>
+          <TouchableOpacity
+            style={[styles.shortcutCard, { backgroundColor: COLORS.surface }]}
+            onPress={() => navigation.navigate('Products')}
+          >
+            <View style={styles.shortcutIconWrap}>
+              <MaterialCommunityIcons name="barcode-scan" size={20} color={COLORS.white} />
+            </View>
+            <View style={styles.shortcutTextWrap}>
+              <Text style={styles.shortcutTitle}>Product Prices</Text>
+              <Text style={styles.shortcutDesc}>
+                Add products manually or scan a barcode to store prices.
+              </Text>
+            </View>
+            <MaterialCommunityIcons name="chevron-right" size={22} color={COLORS.gray} />
+          </TouchableOpacity>
+        </View>
+
         {/* App Information Section */}
         <View style={styles.sectionWrapper}>
           <View style={styles.sectionBackground}>
@@ -384,6 +403,40 @@ const styles = StyleSheet.create({
   sectionWrapper: {
     paddingHorizontal: THEME.spacing.lg,
     paddingVertical: THEME.spacing.md,
+  },
+  shortcutCard: {
+    borderRadius: THEME.borderRadius.lg,
+    padding: THEME.spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: THEME.spacing.md,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  shortcutIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shortcutTextWrap: {
+    flex: 1,
+  },
+  shortcutTitle: {
+    fontSize: THEME.fonts.md,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  shortcutDesc: {
+    marginTop: 4,
+    fontSize: THEME.fonts.sm,
+    color: COLORS.gray,
+    lineHeight: 20,
   },
   sectionBackground: {
     backgroundColor: COLORS.surface,
