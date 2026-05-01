@@ -1,22 +1,22 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   StatusBar,
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
-} from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { DataContext } from '../context/DataContext';
-import { EntryForm } from '../components/EntryForm';
-import { EntryItem } from '../components/EntryItem';
-import { TotalsSummary } from '../components/TotalsSummary';
-import { COLORS, THEME } from '../config/colors';
-import { formatDateDisplay } from '../utils/dateUtils';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { DataContext } from "../context/DataContext";
+import { EntryForm } from "../components/EntryForm";
+import { EntryItem } from "../components/EntryItem";
+import { TotalsSummary } from "../components/TotalsSummary";
+import { COLORS, THEME } from "../config/colors";
+import { formatDateDisplay } from "../utils/dateUtils";
 
 export const DailyBookScreen = () => {
   const {
@@ -67,12 +67,16 @@ export const DailyBookScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerRow}>
-            <MaterialCommunityIcons name="clipboard-text-outline" size={24} color={COLORS.white} />
+            <MaterialCommunityIcons
+              name="clipboard-text-outline"
+              size={24}
+              color={COLORS.white}
+            />
             <Text style={styles.title}>Daily Book</Text>
           </View>
           <Text style={styles.date}>{formatDateDisplay(selectedDate)}</Text>
@@ -122,7 +126,11 @@ export const DailyBookScreen = () => {
           itemCount={entries.length}
         />
 
-        <TouchableOpacity style={styles.addButton} onPress={handleAddEntry} activeOpacity={0.85}>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={handleAddEntry}
+          activeOpacity={0.85}
+        >
           <MaterialCommunityIcons name="plus" size={32} color={COLORS.white} />
         </TouchableOpacity>
       </View>
@@ -131,28 +139,28 @@ export const DailyBookScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
+ safeArea: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.background,
   },
   container: {
+    backgroundColor: COLORS.background,
     flex: 1,
   },
   header: {
-     paddingTop: StatusBar.currentHeight || 0,
     backgroundColor: COLORS.primary,
     paddingHorizontal: THEME.spacing.lg,
     paddingVertical: THEME.spacing.lg,
   },
   headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: THEME.spacing.sm,
     marginBottom: THEME.spacing.sm,
   },
   title: {
     fontSize: THEME.fonts.xl,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.white,
   },
   date: {
@@ -164,8 +172,8 @@ const styles = StyleSheet.create({
     paddingBottom: 80,
   },
   emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 60,
   },
   emptyIcon: {
@@ -173,7 +181,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: THEME.fonts.large,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.dark,
     marginBottom: THEME.spacing.sm,
   },
@@ -183,19 +191,19 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   addButton: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 20,
     right: 20,
     width: 64,
     height: 64,
     borderRadius: 32,
     backgroundColor: COLORS.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     ...THEME.elevation.soft,
   },
 });

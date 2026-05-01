@@ -1,18 +1,18 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   StatusBar,
   TouchableOpacity,
   TextInput,
   Alert,
-} from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { DataContext } from '../context/DataContext';
-import { COLORS, THEME } from '../config/colors';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { DataContext } from "../context/DataContext";
+import { COLORS, THEME } from "../config/colors";
 
 export const SettingsScreen = ({ navigation }) => {
   const { shopDetails, updateShopDetails } = useContext(DataContext);
@@ -24,7 +24,7 @@ export const SettingsScreen = ({ navigation }) => {
 
   const handleSave = async () => {
     if (!shopName || !ownerName || !address || !contact) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert("Error", "Please fill in all fields");
       return;
     }
 
@@ -35,13 +35,13 @@ export const SettingsScreen = ({ navigation }) => {
       contact: contact,
     });
 
-    Alert.alert('Success', 'Shop details updated successfully');
+    Alert.alert("Success", "Shop details updated successfully");
     setIsEditing(false);
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
+    <SafeAreaView  style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
@@ -56,15 +56,26 @@ export const SettingsScreen = ({ navigation }) => {
 
         {/* Shop Details Section */}
         <View style={styles.sectionWrapper}>
-          <View style={[styles.sectionBackground, { backgroundColor: COLORS.surface }]}>
+          <View
+            style={[
+              styles.sectionBackground,
+              { backgroundColor: COLORS.surface },
+            ]}
+          >
             <View style={styles.sectionHeader}>
               <View style={styles.sectionTitleRow}>
                 <View style={styles.sectionIconWrapper}>
-                  <MaterialCommunityIcons name="storefront" size={20} color={COLORS.white} />
+                  <MaterialCommunityIcons
+                    name="storefront"
+                    size={20}
+                    color={COLORS.white}
+                  />
                 </View>
                 <View>
                   <Text style={styles.sectionTitle}>Shop Information</Text>
-                  <Text style={styles.sectionDesc}>Configure your business details</Text>
+                  <Text style={styles.sectionDesc}>
+                    Configure your business details
+                  </Text>
                 </View>
               </View>
               <TouchableOpacity
@@ -72,22 +83,35 @@ export const SettingsScreen = ({ navigation }) => {
                 style={styles.editToggleBtn}
               >
                 <MaterialCommunityIcons
-                  name={isEditing ? 'check' : 'pencil'}
+                  name={isEditing ? "check" : "pencil"}
                   size={16}
                   color={COLORS.white}
                 />
-                <Text style={styles.editToggleBtnText}>{isEditing ? 'Done' : 'Edit'}</Text>
+                <Text style={styles.editToggleBtnText}>
+                  {isEditing ? "Done" : "Edit"}
+                </Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.formContent}>
               <View style={styles.formGroup}>
                 <View style={styles.labelRow}>
-                  <MaterialCommunityIcons name="store" size={18} color={COLORS.primary} />
+                  <MaterialCommunityIcons
+                    name="store"
+                    size={18}
+                    color={COLORS.primary}
+                  />
                   <Text style={styles.label}>Shop Name</Text>
                 </View>
                 <TextInput
-                  style={[styles.input, { backgroundColor: isEditing ? COLORS.white : COLORS.lightGray }]}
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: isEditing
+                        ? COLORS.white
+                        : COLORS.lightGray,
+                    },
+                  ]}
                   value={shopName}
                   onChangeText={setShopName}
                   editable={isEditing}
@@ -98,11 +122,22 @@ export const SettingsScreen = ({ navigation }) => {
 
               <View style={styles.formGroup}>
                 <View style={styles.labelRow}>
-                  <MaterialCommunityIcons name="account" size={18} color={COLORS.primary} />
+                  <MaterialCommunityIcons
+                    name="account"
+                    size={18}
+                    color={COLORS.primary}
+                  />
                   <Text style={styles.label}>Owner Name</Text>
                 </View>
                 <TextInput
-                  style={[styles.input, { backgroundColor: isEditing ? COLORS.white : COLORS.lightGray }]}
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: isEditing
+                        ? COLORS.white
+                        : COLORS.lightGray,
+                    },
+                  ]}
                   value={ownerName}
                   onChangeText={setOwnerName}
                   editable={isEditing}
@@ -113,11 +148,23 @@ export const SettingsScreen = ({ navigation }) => {
 
               <View style={styles.formGroup}>
                 <View style={styles.labelRow}>
-                  <MaterialCommunityIcons name="map-marker" size={18} color={COLORS.primary} />
+                  <MaterialCommunityIcons
+                    name="map-marker"
+                    size={18}
+                    color={COLORS.primary}
+                  />
                   <Text style={styles.label}>Address</Text>
                 </View>
                 <TextInput
-                  style={[styles.input, styles.addressInput, { backgroundColor: isEditing ? COLORS.white : COLORS.lightGray }]}
+                  style={[
+                    styles.input,
+                    styles.addressInput,
+                    {
+                      backgroundColor: isEditing
+                        ? COLORS.white
+                        : COLORS.lightGray,
+                    },
+                  ]}
                   value={address}
                   onChangeText={setAddress}
                   editable={isEditing}
@@ -130,11 +177,22 @@ export const SettingsScreen = ({ navigation }) => {
 
               <View style={styles.formGroup}>
                 <View style={styles.labelRow}>
-                  <MaterialCommunityIcons name="phone" size={18} color={COLORS.primary} />
+                  <MaterialCommunityIcons
+                    name="phone"
+                    size={18}
+                    color={COLORS.primary}
+                  />
                   <Text style={styles.label}>Contact Number</Text>
                 </View>
                 <TextInput
-                  style={[styles.input, { backgroundColor: isEditing ? COLORS.white : COLORS.lightGray }]}
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: isEditing
+                        ? COLORS.white
+                        : COLORS.lightGray,
+                    },
+                  ]}
                   value={contact}
                   onChangeText={setContact}
                   editable={isEditing}
@@ -146,7 +204,11 @@ export const SettingsScreen = ({ navigation }) => {
 
               {isEditing && (
                 <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
-                  <MaterialCommunityIcons name="content-save" size={18} color={COLORS.white} />
+                  <MaterialCommunityIcons
+                    name="content-save"
+                    size={18}
+                    color={COLORS.white}
+                  />
                   <Text style={styles.saveBtnText}>Save Changes</Text>
                 </TouchableOpacity>
               )}
@@ -159,14 +221,22 @@ export const SettingsScreen = ({ navigation }) => {
           <View style={styles.sectionBackground}>
             <View style={styles.sectionTitleRow}>
               <View style={styles.sectionIconWrapper}>
-                <MaterialCommunityIcons name="information" size={20} color={COLORS.white} />
+                <MaterialCommunityIcons
+                  name="information"
+                  size={20}
+                  color={COLORS.white}
+                />
               </View>
               <Text style={styles.sectionTitle}>About App</Text>
             </View>
 
             <View style={styles.infoCard}>
               <View style={styles.infoIconWrapper}>
-                <MaterialCommunityIcons name="tag" size={18} color={COLORS.white} />
+                <MaterialCommunityIcons
+                  name="tag"
+                  size={18}
+                  color={COLORS.white}
+                />
               </View>
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>App Version</Text>
@@ -178,7 +248,11 @@ export const SettingsScreen = ({ navigation }) => {
 
             <View style={styles.infoCard}>
               <View style={styles.infoIconWrapper}>
-                <MaterialCommunityIcons name="laptop" size={18} color={COLORS.white} />
+                <MaterialCommunityIcons
+                  name="laptop"
+                  size={18}
+                  color={COLORS.white}
+                />
               </View>
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Built with</Text>
@@ -190,7 +264,11 @@ export const SettingsScreen = ({ navigation }) => {
 
             <View style={styles.infoCard}>
               <View style={styles.infoIconWrapper}>
-                <MaterialCommunityIcons name="database" size={18} color={COLORS.white} />
+                <MaterialCommunityIcons
+                  name="database"
+                  size={18}
+                  color={COLORS.white}
+                />
               </View>
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Storage</Text>
@@ -205,7 +283,11 @@ export const SettingsScreen = ({ navigation }) => {
           <View style={styles.sectionBackground}>
             <View style={styles.sectionTitleRow}>
               <View style={styles.sectionIconWrapper}>
-                <MaterialCommunityIcons name="lightbulb" size={20} color={COLORS.white} />
+                <MaterialCommunityIcons
+                  name="lightbulb"
+                  size={20}
+                  color={COLORS.white}
+                />
               </View>
               <Text style={styles.sectionTitle}>Pro Tips</Text>
             </View>
@@ -213,7 +295,11 @@ export const SettingsScreen = ({ navigation }) => {
             <View style={styles.tipsList}>
               <View style={styles.tipCard}>
                 <View style={styles.tipIconWrapper}>
-                  <MaterialCommunityIcons name="chart-line" size={18} color={COLORS.accent} />
+                  <MaterialCommunityIcons
+                    name="chart-line"
+                    size={18}
+                    color={COLORS.accent}
+                  />
                 </View>
                 <Text style={styles.tipText}>
                   Regularly check analytics to track business performance
@@ -222,7 +308,11 @@ export const SettingsScreen = ({ navigation }) => {
 
               <View style={styles.tipCard}>
                 <View style={styles.tipIconWrapper}>
-                  <MaterialCommunityIcons name="check-circle" size={18} color={COLORS.success} />
+                  <MaterialCommunityIcons
+                    name="check-circle"
+                    size={18}
+                    color={COLORS.success}
+                  />
                 </View>
                 <Text style={styles.tipText}>
                   Mark payments as "Collected" to track cash flow
@@ -231,7 +321,11 @@ export const SettingsScreen = ({ navigation }) => {
 
               <View style={styles.tipCard}>
                 <View style={styles.tipIconWrapper}>
-                  <MaterialCommunityIcons name="history" size={18} color={COLORS.warning} />
+                  <MaterialCommunityIcons
+                    name="history"
+                    size={18}
+                    color={COLORS.warning}
+                  />
                 </View>
                 <Text style={styles.tipText}>
                   View account history to reconcile with previous records
@@ -240,7 +334,11 @@ export const SettingsScreen = ({ navigation }) => {
 
               <View style={[styles.tipCard, { marginBottom: 0 }]}>
                 <View style={styles.tipIconWrapper}>
-                  <MaterialCommunityIcons name="shield-check" size={18} color={COLORS.primary} />
+                  <MaterialCommunityIcons
+                    name="shield-check"
+                    size={18}
+                    color={COLORS.primary}
+                  />
                 </View>
                 <Text style={styles.tipText}>
                   All data is stored locally on your device for security
@@ -259,26 +357,28 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  container: { flex: 1 },
+  container: {
+    backgroundColor: COLORS.background,
+    flex: 1,
+  },
   header: {
-    paddingTop: StatusBar.currentHeight || 0,
     backgroundColor: COLORS.primary,
     paddingHorizontal: THEME.spacing.lg,
     paddingVertical: THEME.spacing.xl,
   },
   headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: THEME.spacing.md,
   },
   title: {
     fontSize: THEME.fonts.lg,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.white,
   },
   subtitle: {
     fontSize: THEME.fonts.sm,
-    color: 'rgba(255,255,255,0.85)',
+    color: "rgba(255,255,255,0.85)",
     marginTop: THEME.spacing.xs,
   },
   sectionWrapper: {
@@ -296,17 +396,17 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: THEME.spacing.lg,
     paddingBottom: THEME.spacing.lg,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.lightGray,
   },
   sectionTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: THEME.spacing.md,
     flex: 1,
   },
@@ -315,12 +415,12 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 10,
     backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   sectionTitle: {
     fontSize: THEME.fonts.lg,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.text,
   },
   sectionDesc: {
@@ -333,8 +433,8 @@ const styles = StyleSheet.create({
     paddingVertical: THEME.spacing.sm,
     backgroundColor: COLORS.primary,
     borderRadius: THEME.borderRadius.sm,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 2 },
@@ -344,7 +444,7 @@ const styles = StyleSheet.create({
   },
   editToggleBtnText: {
     fontSize: THEME.fonts.sm,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.white,
   },
   formContent: {
@@ -354,14 +454,14 @@ const styles = StyleSheet.create({
     marginBottom: THEME.spacing.lg,
   },
   labelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: THEME.spacing.sm,
     marginBottom: THEME.spacing.sm,
   },
   label: {
     fontSize: THEME.fonts.md,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.text,
   },
   input: {
@@ -375,17 +475,17 @@ const styles = StyleSheet.create({
     minHeight: 44,
   },
   addressInput: {
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
     minHeight: 80,
   },
   saveBtn: {
     backgroundColor: COLORS.primary,
     paddingVertical: THEME.spacing.lg,
     borderRadius: THEME.borderRadius.md,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: THEME.spacing.lg,
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     gap: 8,
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
@@ -395,12 +495,12 @@ const styles = StyleSheet.create({
   },
   saveBtnText: {
     fontSize: THEME.fonts.lg,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.white,
   },
   infoCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: THEME.spacing.md,
     paddingVertical: THEME.spacing.md,
   },
@@ -409,20 +509,20 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: 8,
     backgroundColor: COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   infoContent: {
     flex: 1,
   },
   infoLabel: {
     fontSize: THEME.fonts.sm,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.gray,
   },
   infoValue: {
     fontSize: THEME.fonts.md,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.text,
     marginTop: 2,
   },
@@ -435,8 +535,8 @@ const styles = StyleSheet.create({
     marginTop: THEME.spacing.md,
   },
   tipCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     gap: THEME.spacing.md,
     paddingVertical: THEME.spacing.lg,
   },
@@ -444,9 +544,9 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 6,
-    backgroundColor: 'rgba(15, 23, 36, 0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(15, 23, 36, 0.08)",
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 2,
   },
   tipText: {
@@ -454,6 +554,6 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     lineHeight: 20,
     flex: 1,
-    fontWeight: '500',
+    fontWeight: "500",
   },
 });

@@ -4,10 +4,10 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   StatusBar,
   ActivityIndicator,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from "@react-navigation/native";
 import { DataContext } from "../context/DataContext";
@@ -92,7 +92,7 @@ export const HomeScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
@@ -259,15 +259,15 @@ export const HomeScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
+ safeArea: {
     flex: 1,
     backgroundColor: COLORS.background,
   },
   container: {
+    backgroundColor: COLORS.background,
     flex: 1,
   },
   header: {
-    paddingTop: StatusBar.currentHeight || 0,
     backgroundColor: COLORS.primary,
     paddingHorizontal: THEME.spacing.lg,
     paddingVertical: THEME.spacing.lg,
