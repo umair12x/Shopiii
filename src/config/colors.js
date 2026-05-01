@@ -6,7 +6,7 @@ export const COLORS = {
   primary: '#0F1724', // deep navy (brand primary)
   accent: '#C49A6C', // warm gold accent
 
-  // Semantic
+  // Semantic colors
   success: '#2E7D32',
   error: '#C62828',
   warning: '#D97706',
@@ -17,8 +17,14 @@ export const COLORS = {
 
   // Utilities
   white: '#FFFFFF',
+  black: '#0B1320',
   transparent: 'transparent',
   shadow: 'rgba(11,19,32,0.08)',
+  
+  // Semantic light tints
+  profitGreen: '#E6F4EA',
+  lossRed: '#FDECEC',
+  pending: '#FFF7E6',
 };
 
 // Backwards color aliases for older files
@@ -28,12 +34,6 @@ COLORS.lightGray = 'rgba(11,19,32,0.04)';
 COLORS.darkGray = COLORS.muted;
 COLORS.gray = COLORS.muted;
 COLORS.secondary = COLORS.accent;
-
-// Semantic light tints used previously
-COLORS.profitGreen = '#E6F4EA';
-COLORS.lossRed = '#FDECEC';
-COLORS.pending = '#FFF7E6';
-COLORS.black = COLORS.text;
 
 export const THEME = {
   fonts: {
@@ -59,8 +59,27 @@ export const THEME = {
     lg: 16,
   },
   elevation: {
-    soft: { shadowColor: 'rgba(11,19,32,0.06)', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 1, shadowRadius: 16, elevation: 4 },
-    subtle: { shadowColor: 'rgba(11,19,32,0.04)', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 1, shadowRadius: 10, elevation: 2 },
+    soft: { 
+      shadowColor: 'rgba(11,19,32,0.06)', 
+      shadowOffset: { width: 0, height: 6 }, 
+      shadowOpacity: 1, 
+      shadowRadius: 16, 
+      elevation: 4 
+    },
+    subtle: { 
+      shadowColor: 'rgba(11,19,32,0.04)', 
+      shadowOffset: { width: 0, height: 4 }, 
+      shadowOpacity: 1, 
+      shadowRadius: 10, 
+      elevation: 2 
+    },
+    strong: { 
+      shadowColor: 'rgba(11,19,32,0.12)', 
+      shadowOffset: { width: 0, height: 8 }, 
+      shadowOpacity: 1, 
+      shadowRadius: 24, 
+      elevation: 8 
+    },
   },
 };
 
@@ -69,9 +88,6 @@ THEME.fonts.small = THEME.fonts.xs;
 THEME.fonts.regular = THEME.fonts.sm;
 THEME.fonts.medium = THEME.fonts.md;
 THEME.fonts.large = THEME.fonts.lg;
-THEME.fonts.xxl = THEME.fonts.xxl;
-
-THEME.spacing.xxl = THEME.spacing.xxl;
 
 THEME.borderRadius.small = THEME.borderRadius.sm;
 THEME.borderRadius.medium = THEME.borderRadius.md;

@@ -1,45 +1,45 @@
-# 🎉 Shopiii - Project Complete!
+# Shopiii - Project Complete!
 
 Your complete React Native digital account book app is ready to use! This document summarizes what has been built and how to get started.
 
-## ✅ What's Been Built
+## What's Been Built
 
-### 📱 5 Main Screens
+### 5 Main Screens
 
-1. **🏠 Home Screen**
+1. **Home Screen**
    - Shop branding and overview
    - Today's profit and sales summary
    - Quick navigation tips
 
-2. **📝 Daily Book Screen** (Core Feature)
+2. **Daily Book Screen** (Core Feature)
    - Add/Edit/Delete transactions
    - Automatic profit calculation
    - Payment status tracking
    - Fixed header with totals summary
    - Conditional styling (profit=green, loss=red)
 
-3. **📊 Analytics Dashboard**
+3. **Analytics Dashboard**
    - 30-day sales trend chart
    - Monthly profit chart for current year
    - Key metrics and statistics
    - Switchable time periods
 
-4. **📋 Previous Accounts**
+4. **Previous Accounts**
    - Calendar/date picker
    - View historical transactions
    - Read-only historical data
    - Totals for selected date
 
-5. **⚙️ Settings**
+5. **Settings**
    - Edit shop details (name, owner, address, contact)
    - App information
    - Tips and guidelines
 
-### 🎨 Design Features
+### Design Features
 
 - **Professional Color Scheme**: Red, Teal, Orange, Beige, Dark Blue
 - **Responsive Layout**: Works on phones and tablets
-- **Emoji Icons**: No external icon libraries needed
+- **Icons**: MaterialCommunityIcons used throughout the app
 - **Conditional Styling**:
   - Profit: Light Green background
   - Loss: Light Red background
@@ -48,19 +48,19 @@ Your complete React Native digital account book app is ready to use! This docume
 
 ### 💾 Data Features
 
-✅ **Local Storage via AsyncStorage**
+**Local Storage via AsyncStorage**
 - All data stored locally on device
 - Works completely offline
 - No internet required
 - Fast and reliable
 
-✅ **Smart Data Organization**
+**Smart Data Organization**
 - Entries grouped by date
 - Automatic profit calculation
 - Payment status tracking
 - Quick totals calculation
 
-✅ **Data Queries**
+**Data Queries**
 - View today's transactions
 - Browse past dates
 - Generate 30-day analytics
@@ -68,14 +68,14 @@ Your complete React Native digital account book app is ready to use! This docume
 
 ### 📦 Technical Stack
 
-- ✅ React Native + Expo 54
-- ✅ React Navigation 7 (Tab + Stack)
-- ✅ AsyncStorage for local data
-- ✅ react-native-chart-kit for analytics
-- ✅ react-native-date-picker for date selection
-- ✅ Professional styling with Theme system
+- React Native + Expo 54
+- React Navigation 7 (Tab + Stack)
+- AsyncStorage for local data
+- react-native-chart-kit for analytics
+- react-native-date-picker for date selection
+- Professional styling with Theme system
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Start Development Server
 ```bash
@@ -89,7 +89,7 @@ pnpm start
 - **Web** (Press `w` or `pnpm web`)
 
 ### 3. Configure Shop
-Go to **Settings** (⚙️) tab and update:
+Go to **Settings** tab and update:
 - Shop name
 - Owner name
 - Address
@@ -114,7 +114,7 @@ Total: 25+ files of production-ready code
 ## 🎯 Key Features Explained
 
 ### Setting Payment Status
-- Each entry shows **⏳ Pending** or **✓ Collected**
+- Each entry shows **Pending** or **Collected**
 - Tap to toggle status
 - Pending items visible with yellow border
 - Affects "Cash in Hand" calculation
@@ -139,7 +139,7 @@ Profit = Sale Price - Purchase Price
 - Monthly profits show business performance
 - Average calculations help with planning
 
-## 📊 Data Format
+## Data Format
 
 Each transaction is stored as:
 ```json
@@ -202,23 +202,23 @@ Config → Constants & settings
 - AsyncStorage for data persistence
 - Charts for data visualization
 
-## ⚠️ Important Notes
+## Important Notes
 
 ### Data Safety
-- ✅ Data stored securely on device
-- ✅ No external servers involved
-- ⚠️ Backing up is user's responsibility
-- 💡 Consider Firebase for automatic backup
+- Data stored securely on device
+- No external servers involved
+- Backing up is user's responsibility
+- Consider Firebase for automatic backup
 
 ### Offline Usage
-- ✅ App works 100% offline
-- ✅ No internet required
-- ✅ Perfect for shops with unreliable connectivity
+- App works 100% offline
+- No internet required
+- Perfect for shops with unreliable connectivity
 
 ### Multi-Device Sync
-- ⚠️ Currently not supported
-- 💡 Can be added with Firebase integration
-- 🔜 Future enhancement
+- Currently not supported
+- Can be added with Firebase integration
+- Future enhancement
 
 ## 🐛 Troubleshooting
 
@@ -237,7 +237,7 @@ pnpm start -c  # Clear cache
 - Check that dates are valid
 - Verify react-native-chart-kit is installed
 
-## 🚀 Next Steps
+## Next Steps
 
 1. **Configure Shop Details**: Set your business information
 2. **Add First Entry**: Start tracking a transaction
@@ -245,23 +245,23 @@ pnpm start -c  # Clear cache
 4. **Check Analytics**: View your first reports
 5. **Review History**: Look at past records
 
-## 💡 Pro Tips
+## Pro Tips
 
-- ✅ Add entries throughout the day, don't wait until end
-- ✅ Keep item names consistent for better analytics
-- ✅ Check pending payments regularly
-- ✅ Review analytics weekly to spot trends
-- ✅ Make item names descriptive for easy tracking
+- Add entries throughout the day, don't wait until end
+- Keep item names consistent for better analytics
+- Check pending payments regularly
+- Review analytics weekly to spot trends
+- Make item names descriptive for easy tracking
 
-## 🎁 Bonus Features
+## Bonus Features
 
-- ✅ Works on Android, iOS, and Web
-- ✅ No ads or tracking
-- ✅ Fast and efficient
-- ✅ Beautiful modern design
-- ✅ Currency formatted for Pakistani Rupee
+- Works on Android, iOS, and Web
+- No ads or tracking
+- Fast and efficient
+- Beautiful modern design
+- Currency formatted for Pakistani Rupee
 
-## 📞 Support
+## Support
 
 For issues or questions:
 1. Check README.md for detailed documentation
@@ -269,22 +269,21 @@ For issues or questions:
 3. Examine source code - it's well commented
 4. Check console for error messages
 
-## 🎉 Ready to Go!
+## Ready to Go!
 
 Your app is fully functional and ready for daily use. Start tracking your sales, expenses, and profits right away!
 
 ```
-            🛍️
-          Shopiii
-        Digital Account Book
-     Where Every Sale Counts
+               Shopiii
+            Digital Account Book
+       Where Every Sale Counts
 ```
 
 ---
 
 **Version**: 1.0.0
-**Status**: Production Ready ✅
+**Status**: Production Ready
 **Created**: April 2026
 **Platform**: React Native (Expo)
 
-Enjoy growing your business with Shopiii! 🚀
+Enjoy growing your business with Shopiii!

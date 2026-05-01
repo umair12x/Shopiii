@@ -1,4 +1,4 @@
-# 🚀 Quick Start Guide for Shopiii
+# Quick Start Guide for Shopiii
 
 ## Getting Started (5 minutes)
 
@@ -14,8 +14,8 @@ pnpm start
 - **Web**: Press `w` in terminal or run `pnpm web`
 
 ### Step 3: Configure Shop Details
-1. Go to **Settings** tab (⚙️)
-2. Click **✎ Edit**
+1. Go to **Settings** tab
+2. Tap **Edit**
 3. Update:
    - Shop Name
    - Owner Name
@@ -25,7 +25,7 @@ pnpm start
 
 ## Main Features
 
-### 📝 Daily Book (Add Transactions)
+### Daily Book (Add Transactions)
 1. Go to **Daily Book** tab
 2. Click **+ Add Entry**
 3. Fill in:
@@ -36,34 +36,34 @@ pnpm start
 5. Click **Add Entry**
 
 ### Payment Status
-- Each entry shows **⏳ Pending** or **✓ Collected**
+- Each entry shows **Pending** or **Collected**
 - Click the button to toggle status
 - Pending items show with a yellow border
 - Only "Collected" amounts count toward "Cash in Hand"
 
 ### Edit or Delete
-- Tap **✎ Edit** to modify an entry
-- Tap **🗑 Delete** to remove an entry
+- Tap **Edit** to modify an entry
+- Tap **Delete** to remove an entry
 
-### 📊 Analytics Dashboard
+### Analytics Dashboard
 - View **Sales Trends** for the last 30 days
 - View **Monthly Profits** for the current year
 - Check average daily sales and profit
 
-### 📋 Account History
+### Account History
 - Select any past date to view transactions
 - Read-only view of historical data
 - Useful for reconciliation
 
-### 📊 Totals Display
+### Totals Display
 Every page shows:
-- **💰 Investment**: Total cost of all items
-- **🛍 Sales**: Total sales amount
-- **📈 Profit**: Total profit/loss
-- **✓ Collected**: Cash already received
-- **⏳ Pending**: Money yet to be received
+- **Investment**: Total cost of all items
+- **Sales**: Total sales amount
+- **Profit**: Total profit/loss
+- **Collected**: Cash already received
+- **Pending**: Money yet to be received
 
-## 📱 User Tips
+## User Tips
 
 1. **End of Day**: Mark all collected payments at the end of the day
 2. **Profit Tracking**: Green row = profit, Red row = loss
@@ -71,7 +71,7 @@ Every page shows:
 4. **History**: Use History tab to verify previous days' records
 5. **Backup**: Consider connecting with Firebase later for cloud backup
 
-## ⌨️ Data Entry
+## Data Entry
 
 ### Quick Entry Tips
 - Item names auto-populate (Item 1, Item 2, etc.)
@@ -83,15 +83,15 @@ Every page shows:
 Item Name: Notebook
 Cost Price: 50
 Sale Price: 75
-Profit: 25 ✅
+Profit: 25
 
 Item Name: Pen
 Cost Price: 10
 Sale Price: 8
-Profit: -2 ❌
+Profit: -2
 ```
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### "App crashes on startup"
 ```bash
@@ -107,27 +107,27 @@ pnpm start -c
 - App stores data locally on your phone
 - Make sure you don't clear app data
 
-## 📞 Shop Details
+## Shop Details
 
 You can update shop details anytime:
-1. Go to **Settings** (⚙️)
-2. Click **✎ Edit**
+1. Go to **Settings**
+2. Tap **Edit**
 3. Update any information
 4. Click **Save Changes**
 
 These details appear on the Home page.
 
-## 🎨 How the Colors Work
+## How the Colors Work
 
 | Color | Meaning |
 |-------|---------|
-| 🟢 Light Green | Profit (Positive) |
-| 🔴 Light Red | Loss (Negative) |
-| 🟡 Yellow | Pending Payment |
-| 🟢 Green Button | Collected Payment |
-| 🟡 Yellow Button | Pending Payment |
+| Light Green | Profit (Positive) |
+| Light Red | Loss (Negative) |
+| Yellow | Pending Payment |
+| Green Button | Collected Payment |
+| Yellow Button | Pending Payment |
 
-## 💡 Common Questions
+## Common Questions
 
 **Q: Where is my data stored?**
 A: Locally on your phone in AsyncStorage. No internet needed!
@@ -144,7 +144,7 @@ A: Yes! Run `pnpm web` to use on desktop browser.
 **Q: Can I export data?**
 A: Feature coming soon. Currently view in History tab.
 
-## 🎯 Daily Routine
+## Daily Routine
 
 1. **Morning**: 
    - Check yesterday's totals in History
@@ -162,7 +162,7 @@ A: Feature coming soon. Currently view in History tab.
 5. **Weekly**:
    - Check Analytics for trends
 
-## ✅ Data Integrity
+## Data Integrity
 
 - **Automatic**: Profit calculated automatically
 - **Secure**: Local storage, no external servers
@@ -171,4 +171,4 @@ A: Feature coming soon. Currently view in History tab.
 
 ---
 
-**Ready to go!** Start adding your first entry now! 🎉
+**Ready to go!** Start adding your first entry now!

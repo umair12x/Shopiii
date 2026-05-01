@@ -1,6 +1,6 @@
 # Shopiii - Architecture & Code Organization
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 shopiii/
@@ -37,7 +37,7 @@ shopiii/
 └── ARCHITECTURE.md                 # This file
 ```
 
-## 🔄 Data Flow Architecture
+## Data Flow Architecture
 
 ```
 ┌─────────────────────────────────────┐
@@ -66,7 +66,7 @@ shopiii/
 └─────────┘ └──────────┘ └──────────────┘
 ```
 
-## 📊 State Management (DataContext)
+## State Management (DataContext)
 
 ### Context provides:
 - `entries`: Current day's entries array
@@ -92,7 +92,7 @@ updateShopDetails(details)   // Update shop information
 changeDate(date)             // Switch active date
 ```
 
-## 💾 Data Structure
+## Data Structure
 
 ### Entry Object
 ```javascript
@@ -123,7 +123,7 @@ changeDate(date)             // Switch active date
 - `entries_2024-04-30`: Entries for specific date (one key per date)
 - Format: `entries_${YYYY-MM-DD}`
 
-## 🎨 Component Hierarchy
+## Component Hierarchy
 
 ```
 App.js
@@ -150,7 +150,7 @@ App.js
 │               └── Form Controls
 ```
 
-## 🔌 Dependencies & Versions
+## Dependencies & Versions
 
 ### Navigation (React Navigation 7.x)
 - `@react-navigation/native`: Core navigation
@@ -174,7 +174,7 @@ App.js
 - `react`: React core
 - `react-native`: React Native core
 
-## 🔄 Key Workflows
+## Key Workflows
 
 ### Adding a Transaction
 1. User taps **+ Add Entry** button
@@ -205,7 +205,7 @@ App.js
 4. Entries for selected date loaded
 5. TotalsSummary recalculates with historical data
 
-## 🎨 Styling Architecture
+## Styling Architecture
 
 ### Theme System (config/colors.js)
 - **Centralized color palette**: All colors defined in one place
@@ -224,7 +224,7 @@ const bgColor = isProfit ? COLORS.profitGreen : isLoss ? COLORS.lossRed : COLORS
 const borderColor = entry.isPaymentCollected ? COLORS.success : COLORS.warning;
 ```
 
-## 🔐 LocalStorage Strategy
+## LocalStorage Strategy
 
 ### Data Persistence
 - Uses AsyncStorage for local-only persistence
@@ -238,7 +238,7 @@ const borderColor = entry.isPaymentCollected ? COLORS.success : COLORS.warning;
 - Will allow multi-device access
 - Automatic backup capability
 
-## ⚙️ Configuration
+## Configuration
 
 ### Firebase Setup (Optional)
 1. Create Firebase project
@@ -252,7 +252,7 @@ const borderColor = entry.isPaymentCollected ? COLORS.success : COLORS.warning;
 - Stored in AsyncStorage
 - Used across app for branding
 
-## 🧪 Testing Considerations
+## Testing Considerations
 
 ### Unit Testing
 - Utility functions (formatCurrency, dateUtils)
@@ -269,7 +269,7 @@ const borderColor = entry.isPaymentCollected ? COLORS.success : COLORS.warning;
 - Transaction lifecycle
 - Analytics calculations
 
-## 🚀 Deployment Checklist
+## Deployment Checklist
 
 - [ ] App version updated in app.json
 - [ ] Shop details configured
@@ -280,7 +280,7 @@ const borderColor = entry.isPaymentCollected ? COLORS.success : COLORS.warning;
 - [ ] Review analytics calculations
 - [ ] Check edge cases (no data, large datasets)
 
-## 📈 Performance Optimizations
+## Performance Optimizations
 
 ### Implemented
 - FlatList for efficient list rendering
@@ -294,7 +294,7 @@ const borderColor = entry.isPaymentCollected ? COLORS.success : COLORS.warning;
 - Lazy loading of screens
 - Caching of analytics calculations
 
-## 🔮 Future Architecture Changes
+## Future Architecture Changes
 
 ### Phase 2 (Cloud Sync)
 - Firebase Firestore integration

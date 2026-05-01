@@ -1,15 +1,15 @@
-# 🛍️ Shopiii - Digital Account Book
+# Shopiii - Digital Account Book
 
 A comprehensive React Native (Expo) mobile application for tracking sales, purchases, and profits for small businesses and shops. Replace traditional Excel sheets with a professional digital account book.
 
-## 📋 Features
+## Features
 
-### 1. **Home Page** 🏠
+### 1. **Home Page**
 - Display shop details (name, owner, address, contact)
 - Today's profit and sales summary cards
 - Quick tips and navigation
 
-### 2. **Daily Book** 📝 (Core Feature)
+### 2. **Daily Book** (Core Feature)
 - Add, edit, and delete transaction entries
 - Automatic profit calculation
 - Payment status tracking (Pending vs Collected)
@@ -21,18 +21,18 @@ A comprehensive React Native (Expo) mobile application for tracking sales, purch
   - Cash in Hand
   - Pending Amount
 
-### 3. **Analytics Dashboard** 📊
+### 3. **Analytics Dashboard**
 - 30-day sales trend visualization
 - Monthly profit chart for current year
 - Key metrics and statistics
 - Switching between different time periods
 
-### 4. **Account History** 📋
+### 4. **Account History**
 - View past transactions by date
 - Calendar/date picker integration
 - Read-only view of historical data
 
-## 🎨 Design Features
+## Design Features
 
 - **Color Scheme**: 
   - Primary: #990302 (Deep Red)
@@ -46,9 +46,9 @@ A comprehensive React Native (Expo) mobile application for tracking sales, purch
   - Pending payments: Yellow border (#fff3cd)
   - Collected payments: Green indicator
 
-- **Icons**: Emoji-based icons throughout (no external icon libraries)
+- **Icons**: MaterialCommunityIcons used throughout the app
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Framework**: React Native (Expo ~54.0)
 - **Navigation**: React Navigation 7.x (Stack & Tab)
@@ -58,7 +58,7 @@ A comprehensive React Native (Expo) mobile application for tracking sales, purch
 - **SVG Support**: react-native-svg
 - **Currency**: Formatted for Pakistani Rupee (PKR)
 
-## 📦 Installation
+## Installation
 
 ### Prerequisites
 - Node.js 16+ and npm/pnpm
@@ -91,7 +91,7 @@ npm start
 - iOS: Press `i` or run `expo start --ios`
 - Web: Press `w` or run `expo start --web`
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 shopiii/
@@ -120,7 +120,7 @@ shopiii/
 └── index.js
 ```
 
-## 💾 Data Structure
+## Data Structure
 
 Each transaction entry follows this structure:
 
@@ -137,7 +137,7 @@ Each transaction entry follows this structure:
 }
 ```
 
-## 🔐 Firebase Setup (Optional)
+## Firebase Setup (Optional)
 
 To enable cloud sync and backup:
 
@@ -167,7 +167,7 @@ service cloud.firestore {
 }
 ```
 
-## 📊 Key Data Logic
+## Key Data Logic
 
 ### Profit Calculation
 ```javascript
@@ -189,7 +189,7 @@ pendingAmount = totalSalesOfPendingPayments
 - **Total Sales**: Sum of all sale prices
 - **Total Profit**: Sum of all profits (positive or negative)
 
-## 🎯 Usage Guide
+## Usage Guide
 
 ### Adding a Transaction
 1. Go to **Daily Book** tab
@@ -199,12 +199,12 @@ pendingAmount = totalSalesOfPendingPayments
 
 ### Editing a Transaction
 1. Find the entry in Daily Book
-2. Tap **✎ Edit** button
+2. Tap **Edit** button
 3. Update details
 4. Confirm to save
 
 ### Tracking Payment
-1. Each entry shows **Pending** or **✓ Collected** button
+1. Each entry shows **Pending** or **Collected** button
 2. Tap to toggle payment status
 3. Pending payments show with yellow border
 
@@ -218,14 +218,14 @@ pendingAmount = totalSalesOfPendingPayments
 2. Tap calendar icon to select date
 3. View all entries for that date
 
-## 📝 Notes
+## Notes
 
 - All data is stored locally using AsyncStorage
 - Currency is formatted for Pakistani Rupee
 - No internet required for basic functionality
 - Firebase sync is optional and can be added later
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### App Won't Start
 - Clear cache: `expo start -c`
@@ -239,7 +239,7 @@ pendingAmount = totalSalesOfPendingPayments
 - Verify react-native-chart-kit is installed
 - Check data exists for selected date range
 
-## 🚀 Future Enhancements
+## Future Enhancements
 
 - [ ] Sync with cloud (Firebase)
 - [ ] Export data to CSV/PDF
@@ -249,14 +249,14 @@ pendingAmount = totalSalesOfPendingPayments
 - [ ] Customer management
 - [ ] Graphical inventory tracking
 
-## 📄 License
+## License
 
 MIT License - Feel free to use and modify
 
-## 👨‍💻 Support
+## Support
 
 For issues or feature requests, feel free to reach out!
 
 ---
 
-**Made with ❤️ for small business owners**
+**Made with care for small business owners**
