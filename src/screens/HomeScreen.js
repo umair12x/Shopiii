@@ -36,77 +36,97 @@ const EMPTY_TOTALS = {
   totalProfit: 0,
   cashInHand: 0,
 };
+const PERIODS = [
+  { key: "today", label: "Today", icon: "calendar-today" },
+  { key: "month", label: "Month", icon: "calendar-month" },
+  { key: "year", label: "Year", icon: "calendar" },
+];
 
-// ─── Animated CountUp Number ───
-const CountUp = ({ value, duration = 900, prefix = "", suffix = "" }) => {
-  const anim = useRef(new Animated.Value(0)).current;
+// ─── Reusable Animated Value Hook ───
+const useAnimatedValue = (initial) =>
+  useRef(new Animated.Value(initial)).current;
+
+// ─── CountUp with full value display ───
+const CountUp = React.memo(({ value }) => {
+  const anim = useAnimatedValue(0);
   const [display, setDisplay] = useState(0);
 
   useEffect(() => {
     anim.setValue(0);
     Animated.timing(anim, {
       toValue: value,
-      duration,
+      duration: 900,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start();
-
     const id = anim.addListener(({ value: v }) => setDisplay(v));
     return () => anim.removeListener(id);
-  }, [value, anim, duration]);
+  }, [value]);
 
-  return (
-    <Text style={styles.countUpText}>
-      {prefix}
-      {formatCurrency(display)}
-      {suffix}
-    </Text>
-  );
-};
+  // Format without abbreviation for complete number display
+  const formatFullNumber = (num) => {
+    return new Intl.NumberFormat('en-PK', {
+      style: 'currency',
+      currency: 'PKR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(num);
+  };
 
-// ─── Metric Pill ───
-const MetricPill = ({ icon, label, value, color, delay = 0 }) => {
-  const scale = useRef(new Animated.Value(0.8)).current;
-  const opacity = useRef(new Animated.Value(0)).current;
+  return <Text style={styles.countUpText}>{formatFullNumber(display)}</Text>;
+});
+
+// ─── Metric Pill with full value ───
+const MetricPill = React.memo(({ icon, label, value, color, delay }) => {
+  const opacity = useAnimatedValue(0);
 
   useEffect(() => {
     const t = setTimeout(() => {
-      Animated.parallel([
-        Animated.spring(scale, { toValue: 1, friction: 6, tension: 60, useNativeDriver: true }),
-        Animated.timing(opacity, { toValue: 1, duration: 400, useNativeDriver: true }),
-      ]).start();
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }).start();
     }, delay);
     return () => clearTimeout(t);
-  }, [delay, scale, opacity]);
+  }, [delay]);
+
+  const formatFullNumber = (num) => {
+    return new Intl.NumberFormat('en-PK', {
+      style: 'currency',
+      currency: 'PKR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(num);
+  };
 
   return (
-    <Animated.View style={[styles.metricPill, { transform: [{ scale }], opacity }]}>
-      <View style={[styles.metricPillIcon, { backgroundColor: `${color}15` }]}>
+    <Animated.View style={[styles.metricPill, { opacity }]}>
+      <View style={[styles.metricPillIcon, { backgroundColor: color + "20" }]}>
         <MaterialCommunityIcons name={icon} size={18} color={color} />
       </View>
-      <View>
-        <Text style={styles.metricPillValue} numberOfLines={1}>
-          {formatCurrency(value)}
+      <View style={styles.metricPillTextContainer}>
+        <Text style={styles.metricPillValue} numberOfLines={2}>
+          {formatFullNumber(value)}
         </Text>
         <Text style={styles.metricPillLabel}>{label}</Text>
       </View>
     </Animated.View>
   );
-};
+});
 
-// ─── Sparkline Bar (mini visual) ───
-const SparkBar = ({ value, max, color }) => {
-  const widthAnim = useRef(new Animated.Value(0)).current;
-  const finalWidth = max > 0 ? (Math.abs(value) / max) * 100 : 0;
+// ─── Spark Bar ───
+const SparkBar = React.memo(({ value, max, color }) => {
+  const width = useAnimatedValue(0);
+  const pct = max > 0 ? (Math.abs(value) / max) * 100 : 0;
 
   useEffect(() => {
-    Animated.timing(widthAnim, {
-      toValue: finalWidth,
+    Animated.timing(width, {
+      toValue: pct,
       duration: 800,
-      easing: Easing.out(Easing.cubic),
       useNativeDriver: false,
     }).start();
-  }, [finalWidth, widthAnim]);
+  }, [pct]);
 
   return (
     <View style={styles.sparkTrack}>
@@ -114,7 +134,7 @@ const SparkBar = ({ value, max, color }) => {
         style={[
           styles.sparkFill,
           {
-            width: widthAnim.interpolate({
+            width: width.interpolate({
               inputRange: [0, 100],
               outputRange: ["0%", "100%"],
             }),
@@ -124,102 +144,143 @@ const SparkBar = ({ value, max, color }) => {
       />
     </View>
   );
-};
-
-// ─── Period Selector ───
-const PeriodSelector = ({ active, onChange }) => {
-  const periods = [
-    { key: "today", label: "Today", icon: "calendar-today" },
-    { key: "month", label: "Month", icon: "calendar-month" },
-    { key: "year", label: "Year", icon: "calendar" },
-  ];
-
-  return (
-    <View style={styles.periodSelector}>
-      {periods.map((p) => {
-        const isActive = active === p.key;
-        return (
-          <TouchableOpacity
-            key={p.key}
-            style={[styles.periodBtn, isActive && styles.periodBtnActive]}
-            onPress={() => onChange(p.key)}
-            activeOpacity={0.8}
-          >
-            <MaterialCommunityIcons
-              name={p.icon}
-              size={16}
-              color={isActive ? COLORS.white : COLORS.muted}
-            />
-            <Text style={[styles.periodText, isActive && styles.periodTextActive]}>
-              {p.label}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
-    </View>
-  );
-};
+});
 
 // ─── Health Indicator ───
-const HealthIndicator = ({ profit, sales }) => {
-  const pulse = useRef(new Animated.Value(1)).current;
+const HealthIndicator = React.memo(({ profit, sales }) => {
   const margin = sales > 0 ? (profit / sales) * 100 : 0;
-  const isHealthy = margin >= 20;
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, {
-          toValue: 1.3,
-          duration: 1200,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulse, {
-          toValue: 1,
-          duration: 1200,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }, [pulse]);
+  const healthy = margin >= 20;
 
   return (
     <View style={styles.healthWrap}>
-      <Animated.View
+      <View
         style={[
           styles.healthDot,
-          {
-            backgroundColor: isHealthy ? "#4ade80" : "#fbbf24",
-            transform: [{ scale: pulse }],
-          },
+          { backgroundColor: healthy ? "#4ade80" : "#fbbf24" },
         ]}
       />
       <Text style={styles.healthText}>
-        {isHealthy ? "Healthy margin" : "Low margin"} · {margin.toFixed(1)}%
+        {healthy ? "Healthy" : "Low"} margin · {margin.toFixed(1)}%
       </Text>
     </View>
   );
-};
+});
 
-// ─── Shop Detail Chip ───
-const DetailChip = ({ icon, label, value }) => (
+// ─── Detail Chip with full value ───
+const DetailChip = React.memo(({ icon, label, value }) => (
   <View style={styles.detailChip}>
     <MaterialCommunityIcons name={icon} size={14} color={COLORS.accent} />
-    <View style={styles.detailChipText}>
+    <View style={styles.detailChipTextContainer}>
       <Text style={styles.detailChipLabel}>{label}</Text>
-      <Text style={styles.detailChipValue} numberOfLines={1}>{value}</Text>
+      <Text style={styles.detailChipValue} numberOfLines={2}>
+        {value || "—"}
+      </Text>
     </View>
   </View>
+));
+
+// ─── Sync Status ───
+const SyncStatus = React.memo(
+  ({ lastSyncTime, isSynced, syncStatus, dataStorageAge, onSync }) => {
+    const isSyncing = syncStatus === "syncing";
+    const spin = useAnimatedValue(0);
+
+    useEffect(() => {
+      if (!isSyncing) return;
+      const loop = Animated.loop(
+        Animated.timing(spin, {
+          toValue: 1,
+          duration: 1000,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+      );
+      loop.start();
+      return () => loop.stop();
+    }, [isSyncing]);
+
+    const icon = isSyncing
+      ? "cloud-sync"
+      : isSynced
+        ? "cloud-check"
+        : "cloud-off-outline";
+    const color = isSyncing
+      ? COLORS.warning || "#fbbf24"
+      : isSynced
+        ? COLORS.success || "#22c55e"
+        : COLORS.error || "#ef4444";
+    const msg = isSyncing
+      ? "Syncing..."
+      : lastSyncTime
+        ? `Synced ${formatTimeAgo(lastSyncTime)}`
+        : dataStorageAge
+          ? `Local · ${formatTimeAgo(new Date(Date.now() - dataStorageAge))}`
+          : "Local only";
+
+    return (
+      <TouchableOpacity
+        style={[styles.syncCard, { borderLeftColor: color }]}
+        onPress={onSync}
+        activeOpacity={isSyncing ? 1 : 0.8}
+        disabled={isSyncing}
+      >
+        <Animated.View
+          style={[
+            styles.syncIconWrap,
+            {
+              transform: [
+                {
+                  rotate: spin.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ["0deg", "360deg"],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <MaterialCommunityIcons name={icon} size={22} color={color} />
+        </Animated.View>
+        <View style={styles.syncTextContainer}>
+          <Text style={styles.syncTitle}>
+            {isSyncing
+              ? "Syncing..."
+              : isSynced
+                ? "Cloud Synced"
+                : "Local Only"}
+          </Text>
+          <Text style={[styles.syncMessage, { color }]} numberOfLines={2}>
+            {msg}
+          </Text>
+        </View>
+        {!isSyncing && (
+          <MaterialCommunityIcons
+            name="chevron-right"
+            size={20}
+            color={COLORS.muted}
+          />
+        )}
+      </TouchableOpacity>
+    );
+  },
 );
 
 // ═══════════════════════════════════════
 // MAIN SCREEN
 // ═══════════════════════════════════════
 export const HomeScreen = () => {
-  const { shopDetails, entries, getEntriesForDateRange } = useContext(DataContext);
+  const {
+    shopDetails,
+    entries,
+    getEntriesForDateRange,
+    lastSyncTime,
+    isSynced,
+    syncStatus,
+    dataStorageAge,
+    uploadToFirebase,
+  } = useContext(DataContext);
   const tabBarHeight = useBottomTabBarHeight();
+
   const [period, setPeriod] = useState("today");
   const [data, setData] = useState({
     today: EMPTY_TOTALS,
@@ -230,32 +291,33 @@ export const HomeScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
-  // Animation refs
-  const headerScale = useRef(new Animated.Value(0.95)).current;
-  const headerOpacity = useRef(new Animated.Value(0)).current;
-  const contentSlide = useRef(new Animated.Value(40)).current;
-  const contentOpacity = useRef(new Animated.Value(0)).current;
-  const waveAnim = useRef(new Animated.Value(0)).current;
+  // Single animation controller instead of multiple refs
+  const animController = useRef(new Animated.Value(0)).current;
 
-  const today = new Date();
-  const currentMonthLabel = useMemo(
+  const today = useMemo(() => new Date(), []);
+  const monthLabel = useMemo(
     () =>
-      new Intl.DateTimeFormat("en-PK", { month: "long", year: "numeric" }).format(today),
-    [today]
+      new Intl.DateTimeFormat("en-PK", {
+        month: "long",
+        year: "numeric",
+      }).format(today),
+    [],
   );
 
-  const getTotals = useCallback((periodEntries) => {
-    return periodEntries.reduce(
-      (acc, entry) => ({
-        totalInvestment: acc.totalInvestment + (entry.purchasePrice || 0),
-        totalSales: acc.totalSales + (entry.salePrice || 0),
-        totalProfit: acc.totalProfit + (entry.profit || 0),
-        cashInHand:
-          acc.cashInHand + (entry.isPaymentCollected ? entry.salePrice || 0 : 0),
-      }),
-      { ...EMPTY_TOTALS }
-    );
-  }, []);
+  const getTotals = useCallback(
+    (items) =>
+      items.reduce(
+        (acc, e) => ({
+          totalInvestment: acc.totalInvestment + (e.purchasePrice || 0),
+          totalSales: acc.totalSales + (e.salePrice || 0),
+          totalProfit: acc.totalProfit + (e.profit || 0),
+          cashInHand:
+            acc.cashInHand + (e.isPaymentCollected ? e.salePrice || 0 : 0),
+        }),
+        { ...EMPTY_TOTALS },
+      ),
+    [],
+  );
 
   const loadData = useCallback(async () => {
     try {
@@ -265,20 +327,16 @@ export const HomeScreen = () => {
       todayStart.setHours(0, 0, 0, 0);
       const todayEnd = new Date(now);
       todayEnd.setHours(23, 59, 59, 999);
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-      const yearStart = new Date(now.getFullYear(), 0, 1);
-
+      
       const [tEntries, mEntries, yEntries] = await Promise.all([
         getEntriesForDateRange(todayStart, todayEnd),
-        getEntriesForDateRange(monthStart, now),
-        getEntriesForDateRange(yearStart, now),
+        getEntriesForDateRange(
+          new Date(now.getFullYear(), now.getMonth(), 1),
+          now,
+        ),
+        getEntriesForDateRange(new Date(now.getFullYear(), 0, 1), now),
       ]);
-
-      setData({
-        today: getTotals(tEntries),
-        month: getTotals(mEntries),
-        year: getTotals(yEntries),
-      });
+      setData({ today: getTotals(tEntries), month: getTotals(mEntries), year: getTotals(yEntries) });
       setLastUpdated(new Date());
     } catch (e) {
       console.error("Home load error:", e);
@@ -291,70 +349,93 @@ export const HomeScreen = () => {
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [loadData])
+    }, [loadData]),
   );
-
   useEffect(() => {
     loadData();
   }, [entries, loadData]);
 
-  // Entrance animation
+  // Single staggered entrance animation
   useEffect(() => {
-    if (!loading) {
-      Animated.parallel([
-        Animated.timing(headerOpacity, {
-          toValue: 1,
-          duration: 600,
-          useNativeDriver: true,
-        }),
-        Animated.spring(headerScale, {
-          toValue: 1,
-          friction: 7,
-          tension: 40,
-          useNativeDriver: true,
-        }),
-        Animated.timing(contentOpacity, {
-          toValue: 1,
-          duration: 500,
-          delay: 200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(contentSlide, {
-          toValue: 0,
-          duration: 600,
-          delay: 200,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }),
-        Animated.timing(waveAnim, {
-          toValue: 1,
-          duration: 1000,
-          delay: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }
-  }, [loading, headerOpacity, headerScale, contentOpacity, contentSlide, waveAnim]);
+    if (loading) return;
+    Animated.timing(animController, {
+      toValue: 1,
+      duration: 800,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [loading]);
 
-  const onRefresh = () => {
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadData();
-  };
+  }, [loadData]);
+  
+  const handleSync = useCallback(async () => {
+    if (!uploadToFirebase) return;
+    try {
+      const r = await uploadToFirebase();
+      if (!r?.success) console.warn("Sync failed:", r?.message);
+    } catch (e) {
+      console.error("Sync error:", e);
+    }
+  }, [uploadToFirebase]);
 
   const current = data[period];
   const maxVal = Math.max(
     current.totalSales,
     current.totalProfit,
     current.totalInvestment,
-    1
+    1,
   );
-
   const periodLabel =
     period === "today"
       ? formatDateDisplay(today)
       : period === "month"
-      ? currentMonthLabel
-      : `Year ${today.getFullYear()}`;
+        ? monthLabel
+        : `Year ${today.getFullYear()}`;
+
+  const shopName = shopDetails?.name || "My Shop";
+  const shopOwner = shopDetails?.owner || "";
+  const shopAddress = shopDetails?.address || "";
+  const shopContact = shopDetails?.contact || "";
+
+  // Interpolations from single controller
+  const headerOpacity = animController.interpolate({
+    inputRange: [0, 0.4],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
+  const headerScale = animController.interpolate({
+    inputRange: [0, 0.4],
+    outputRange: [0.95, 1],
+    extrapolate: "clamp",
+  });
+  const contentOpacity = animController.interpolate({
+    inputRange: [0.2, 0.7],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
+  const contentSlide = animController.interpolate({
+    inputRange: [0.2, 0.7],
+    outputRange: [30, 0],
+    extrapolate: "clamp",
+  });
+  const waveTranslate = animController.interpolate({
+    inputRange: [0.3, 1],
+    outputRange: [20, 0],
+    extrapolate: "clamp",
+  });
+
+  // Format helper for complete number display
+  const formatFullNumber = (num) => {
+    return new Intl.NumberFormat('en-PK', {
+      style: 'currency',
+      currency: 'PKR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(num);
+  };
 
   if (loading && !refreshing) {
     return (
@@ -362,9 +443,17 @@ export const HomeScreen = () => {
         <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
         <View style={styles.loadingScreen}>
           <View style={styles.loadingLogo}>
-            <MaterialCommunityIcons name="storefront-outline" size={48} color={COLORS.accent} />
+            <MaterialCommunityIcons
+              name="storefront-outline"
+              size={48}
+              color={COLORS.accent}
+            />
           </View>
-          <ActivityIndicator size="large" color={COLORS.accent} style={{ marginTop: 20 }} />
+          <ActivityIndicator
+            size="large"
+            color={COLORS.accent}
+            style={{ marginTop: 20 }}
+          />
           <Text style={styles.loadingText}>Loading your dashboard...</Text>
         </View>
       </SafeAreaView>
@@ -373,25 +462,28 @@ export const HomeScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} translucent />
-
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={COLORS.primary}
+        translucent
+      />
       <ScrollView
         style={styles.container}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: tabBarHeight + THEME.spacing.xl },
-        ]}
+        contentContainerStyle={{
+          paddingBottom: tabBarHeight + THEME.spacing.xl,
+        }}
         showsVerticalScrollIndicator={false}
-        scrollIndicatorInsets={{ bottom: tabBarHeight + 8 }}
-        contentInsetAdjustmentBehavior="automatic"
         decelerationRate="normal"
-        bounces={true}
         keyboardDismissMode="interactive"
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.accent} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={COLORS.accent}
+          />
         }
       >
-        {/* ═══ HERO HEADER ═══ */}
+        {/* Hero */}
         <Animated.View
           style={[
             styles.heroHeader,
@@ -401,64 +493,87 @@ export const HomeScreen = () => {
           <View style={styles.heroTop}>
             <View style={styles.heroShop}>
               <View style={styles.shopAvatar}>
-                <Text style={styles.shopAvatarText}>{shopDetails.name?.charAt(0) || "S"}</Text>
+                <Text style={styles.shopAvatarText}>{shopName.charAt(0)}</Text>
               </View>
-              <View style={styles.shopInfo}>
-                <Text style={styles.shopName}>{shopDetails.name}</Text>
-                <HealthIndicator profit={current.totalProfit} sales={current.totalSales} />
+              <View style={styles.shopInfoContainer}>
+                <Text style={styles.shopName} numberOfLines={2}>
+                  {shopName}
+                </Text>
+                <HealthIndicator
+                  profit={current.totalProfit}
+                  sales={current.totalSales}
+                />
               </View>
             </View>
-
             <View style={styles.liveBadge}>
               <View style={styles.livePulse} />
               <Text style={styles.liveText}>Live</Text>
             </View>
           </View>
 
-          {/* Hero Metric */}
           <View style={styles.heroMetric}>
             <Text style={styles.heroMetricLabel}>Net Profit</Text>
             <CountUp value={current.totalProfit} />
             <Text style={styles.heroMetricPeriod}>{periodLabel}</Text>
           </View>
 
-          {/* Quick pills */}
           <View style={styles.heroPills}>
             <MetricPill
               icon="wallet-outline"
-              label="Cash"
+              label="Cash in Hand"
               value={current.cashInHand}
               color={COLORS.success}
-              delay={300}
+              delay={200}
             />
             <MetricPill
               icon="cart-outline"
-              label="Sales"
+              label="Total Sales"
               value={current.totalSales}
               color={COLORS.accent}
-              delay={400}
+              delay={300}
             />
             <MetricPill
               icon="cash-minus"
-              label="Cost"
+              label="Total Cost"
               value={current.totalInvestment}
               color={COLORS.warning}
-              delay={500}
+              delay={400}
             />
           </View>
         </Animated.View>
 
-        {/* ═══ WAVE DIVIDER ═══ */}
+        {/* Sync */}
+        <Animated.View
+          style={{
+            opacity: contentOpacity,
+            backgroundColor: COLORS.primary,
+            paddingHorizontal: THEME.spacing.lg,
+            paddingBottom: THEME.spacing.md,
+          }}
+        >
+          <SyncStatus
+            lastSyncTime={lastSyncTime}
+            isSynced={isSynced}
+            syncStatus={syncStatus}
+            dataStorageAge={dataStorageAge}
+            onSync={handleSync}
+          />
+        </Animated.View>
+
+        {/* Wave */}
         <Animated.View
           style={[
             styles.waveContainer,
-            { opacity: waveAnim, transform: [{ translateY: waveAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] },
+            {
+              opacity: contentOpacity,
+              transform: [{ translateY: waveTranslate }],
+            },
           ]}
         >
           <View style={styles.wave} />
         </Animated.View>
 
-        {/* ═══ CONTENT ═══ */}
+        {/* Content */}
         <Animated.View
           style={[
             styles.content,
@@ -469,110 +584,168 @@ export const HomeScreen = () => {
           ]}
         >
           {/* Period Selector */}
-          <PeriodSelector active={period} onChange={setPeriod} />
+          <View style={styles.periodSelector}>
+            {PERIODS.map((p) => {
+              const active = period === p.key;
+              return (
+                <TouchableOpacity
+                  key={p.key}
+                  style={[styles.periodBtn, active && styles.periodBtnActive]}
+                  onPress={() => setPeriod(p.key)}
+                  activeOpacity={0.8}
+                >
+                  <MaterialCommunityIcons
+                    name={p.icon}
+                    size={16}
+                    color={active ? COLORS.white : COLORS.muted}
+                  />
+                  <Text
+                    style={[
+                      styles.periodText,
+                      active && styles.periodTextActive,
+                    ]}
+                  >
+                    {p.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
 
-          {/* Visual Breakdown */}
+          {/* Breakdown */}
           <View style={styles.breakdownCard}>
             <View style={styles.breakdownHeader}>
               <Text style={styles.breakdownTitle}>Performance Breakdown</Text>
-              <Text style={styles.breakdownSubtitle}>Profit vs Investment vs Sales</Text>
+              <Text style={styles.breakdownSubtitle}>
+                Profit vs Investment vs Sales
+              </Text>
             </View>
-
             <View style={styles.sparkLines}>
-              <View style={styles.sparkRow}>
-                <View style={styles.sparkLabelWrap}>
-                  <View style={[styles.sparkDot, { backgroundColor: COLORS.success }]} />
-                  <Text style={styles.sparkLabel}>Profit</Text>
+              {[
+                {
+                  label: "Profit",
+                  value: current.totalProfit,
+                  color: COLORS.success,
+                },
+                {
+                  label: "Sales",
+                  value: current.totalSales,
+                  color: COLORS.accent,
+                },
+                {
+                  label: "Cost",
+                  value: current.totalInvestment,
+                  color: COLORS.warning,
+                },
+              ].map((item) => (
+                <View key={item.label} style={styles.sparkRow}>
+                  <View style={styles.sparkLabelWrap}>
+                    <View
+                      style={[styles.sparkDot, { backgroundColor: item.color }]}
+                    />
+                    <Text style={styles.sparkLabel}>{item.label}</Text>
+                  </View>
+                  <View style={styles.sparkBarContainer}>
+                    <SparkBar
+                      value={item.value}
+                      max={maxVal}
+                      color={item.color}
+                    />
+                  </View>
+                  <Text style={styles.sparkValue}>
+                    {formatFullNumber(item.value)}
+                  </Text>
                 </View>
-                <View style={styles.sparkBarWrap}>
-                  <SparkBar value={current.totalProfit} max={maxVal} color={COLORS.success} />
-                </View>
-                <Text style={styles.sparkValue}>{formatCurrency(current.totalProfit)}</Text>
-              </View>
-
-              <View style={styles.sparkRow}>
-                <View style={styles.sparkLabelWrap}>
-                  <View style={[styles.sparkDot, { backgroundColor: COLORS.accent }]} />
-                  <Text style={styles.sparkLabel}>Sales</Text>
-                </View>
-                <View style={styles.sparkBarWrap}>
-                  <SparkBar value={current.totalSales} max={maxVal} color={COLORS.accent} />
-                </View>
-                <Text style={styles.sparkValue}>{formatCurrency(current.totalSales)}</Text>
-              </View>
-
-              <View style={styles.sparkRow}>
-                <View style={styles.sparkLabelWrap}>
-                  <View style={[styles.sparkDot, { backgroundColor: COLORS.warning }]} />
-                  <Text style={styles.sparkLabel}>Cost</Text>
-                </View>
-                <View style={styles.sparkBarWrap}>
-                  <SparkBar value={current.totalInvestment} max={maxVal} color={COLORS.warning} />
-                </View>
-                <Text style={styles.sparkValue}>{formatCurrency(current.totalInvestment)}</Text>
-              </View>
+              ))}
             </View>
           </View>
 
-          {/* Key Metrics Grid */}
+          {/* Metrics Grid */}
           <View style={styles.metricsGrid}>
-            <View style={styles.metricCard}>
-              <View style={[styles.metricIconWrap, { backgroundColor: "rgba(34,197,94,0.1)" }]}>
-                <MaterialCommunityIcons name="trending-up" size={22} color={COLORS.success} />
+            {[
+              {
+                icon: "trending-up",
+                label: "Profit Margin",
+                value: `${current.totalSales > 0 ? ((current.totalProfit / current.totalSales) * 100).toFixed(2) : 0}%`,
+                bg: "rgba(34,197,94,0.1)",
+                color: COLORS.success,
+              },
+              {
+                icon: "chart-pie",
+                label: "Gross Profit",
+                value: formatFullNumber(
+                  current.totalSales - current.totalInvestment,
+                ),
+                bg: "rgba(196,154,108,0.1)",
+                color: COLORS.accent,
+              },
+              {
+                icon: "wallet",
+                label: "Cash Balance",
+                value: formatFullNumber(current.cashInHand),
+                bg: "rgba(59,130,246,0.1)",
+                color: COLORS.primary,
+              },
+            ].map((m) => (
+              <View key={m.label} style={styles.metricCard}>
+                <View
+                  style={[styles.metricIconWrap, { backgroundColor: m.bg }]}
+                >
+                  <MaterialCommunityIcons
+                    name={m.icon}
+                    size={22}
+                    color={m.color}
+                  />
+                </View>
+                <Text style={styles.metricValue} numberOfLines={2}>
+                  {m.value}
+                </Text>
+                <Text style={styles.metricLabel}>{m.label}</Text>
               </View>
-              <Text style={styles.metricValue}>
-                {current.totalSales > 0 ? ((current.totalProfit / current.totalSales) * 100).toFixed(1) : 0}%
-              </Text>
-              <Text style={styles.metricLabel}>Margin</Text>
-            </View>
-
-            <View style={styles.metricCard}>
-              <View style={[styles.metricIconWrap, { backgroundColor: "rgba(196,154,108,0.1)" }]}>
-                <MaterialCommunityIcons name="chart-pie" size={22} color={COLORS.accent} />
-              </View>
-              <Text style={styles.metricValue}>
-                {formatCurrency(current.totalSales - current.totalInvestment)}
-              </Text>
-              <Text style={styles.metricLabel}>Gross</Text>
-            </View>
-
-            <View style={styles.metricCard}>
-              <View style={[styles.metricIconWrap, { backgroundColor: "rgba(59,130,246,0.1)" }]}>
-                <MaterialCommunityIcons name="wallet" size={22} color={COLORS.primary} />
-              </View>
-              <Text style={styles.metricValue}>
-                {formatCurrency(current.cashInHand)}
-              </Text>
-              <Text style={styles.metricLabel}>Cash</Text>
-            </View>
+            ))}
           </View>
 
-          {/* Shop Details - Compact */}
+          {/* Shop */}
           <View style={styles.shopSection}>
             <View style={styles.shopSectionHeader}>
               <Text style={styles.shopSectionTitle}>Shop Profile</Text>
-              <Text style={styles.shopSectionUpdated}>Updated {formatTimeAgo(lastUpdated)}</Text>
+              <Text style={styles.shopSectionUpdated}>
+                Updated {formatTimeAgo(lastUpdated)}
+              </Text>
             </View>
-
             <View style={styles.shopCard}>
               <View style={styles.shopCardTop}>
                 <View style={styles.shopCardAvatar}>
-                  <MaterialCommunityIcons name="storefront" size={28} color={COLORS.accent} />
+                  <MaterialCommunityIcons
+                    name="storefront"
+                    size={28}
+                    color={COLORS.accent}
+                  />
                 </View>
-                <View style={styles.shopCardInfo}>
-                  <Text style={styles.shopCardName}>{shopDetails.name}</Text>
-                  <Text style={styles.shopCardOwner}>by {shopDetails.owner}</Text>
+                <View style={styles.shopCardInfoContainer}>
+                  <Text style={styles.shopCardName} numberOfLines={2}>
+                    {shopName}
+                  </Text>
+                  {shopOwner ? (
+                    <Text style={styles.shopCardOwner}>Owner: {shopOwner}</Text>
+                  ) : null}
                 </View>
               </View>
-
               <View style={styles.chipsRow}>
-                <DetailChip icon="map-marker-outline" label="Location" value={shopDetails.address} />
-                <DetailChip icon="phone-outline" label="Contact" value={shopDetails.contact} />
+                <DetailChip
+                  icon="map-marker-outline"
+                  label="Location"
+                  value={shopAddress}
+                />
+                <DetailChip
+                  icon="phone-outline"
+                  label="Contact"
+                  value={shopContact}
+                />
               </View>
             </View>
           </View>
 
-          {/* Bottom Spacer */}
           <View style={{ height: 40 }} />
         </Animated.View>
       </ScrollView>
@@ -580,23 +753,19 @@ export const HomeScreen = () => {
   );
 };
 
-// ═══════════════════════════════════════
-// STYLES
-// ═══════════════════════════════════════
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: COLORS.primary,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollContent: {
-    paddingBottom: THEME.spacing.xl,
-  },
-
-  // ─── Loading ───
+  safeArea: { flex: 1, backgroundColor: COLORS.primary },
+  container: { flex: 1, backgroundColor: COLORS.background },
+  
+  // Updated containers for better text wrapping
+  flex1: { flex: 1 },
+  shopInfoContainer: { flex: 1, marginRight: 8 },
+  shopCardInfoContainer: { flex: 1 },
+  metricPillTextContainer: { flex: 1, marginRight: 4 },
+  detailChipTextContainer: { flex: 1 },
+  syncTextContainer: { flex: 1, marginRight: 8 },
+  sparkBarContainer: { flex: 1 },
+  
   loadingScreen: {
     flex: 1,
     backgroundColor: COLORS.background,
@@ -618,7 +787,6 @@ const styles = StyleSheet.create({
     color: COLORS.muted,
   },
 
-  // ─── Hero Header ───
   heroHeader: {
     backgroundColor: COLORS.primary,
     paddingTop: 20,
@@ -630,12 +798,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "flex-start",
   },
-  heroShop: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-    flex: 1,
-  },
+  heroShop: { flexDirection: "row", alignItems: "center", gap: 14, flex: 1 },
   shopAvatar: {
     width: 52,
     height: 52,
@@ -646,16 +809,9 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: "rgba(255,255,255,0.25)",
   },
-  shopAvatarText: {
-    fontSize: 22,
-    fontWeight: "900",
-    color: COLORS.white,
-  },
-  shopInfo: {
-    flex: 1,
-  },
+  shopAvatarText: { fontSize: 22, fontWeight: "900", color: COLORS.white },
   shopName: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "900",
     color: COLORS.white,
     letterSpacing: -0.3,
@@ -684,29 +840,20 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
 
-  // Health
   healthWrap: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
     marginTop: 4,
   },
-  healthDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
+  healthDot: { width: 8, height: 8, borderRadius: 4 },
   healthText: {
     fontSize: 12,
     fontWeight: "600",
     color: "rgba(255,255,255,0.7)",
   },
 
-  // Hero Metric
-  heroMetric: {
-    marginTop: 28,
-    marginBottom: 20,
-  },
+  heroMetric: { marginTop: 28, marginBottom: 20 },
   heroMetricLabel: {
     fontSize: 13,
     fontWeight: "700",
@@ -716,10 +863,10 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   countUpText: {
-    fontSize: 42,
+    fontSize: 36,
     fontWeight: "900",
     color: COLORS.white,
-    letterSpacing: -1,
+    letterSpacing: -0.5,
   },
   heroMetricPeriod: {
     fontSize: 14,
@@ -728,43 +875,61 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  // Hero Pills
-  heroPills: {
-    flexDirection: "row",
-    gap: 10,
-  },
+  heroPills: { flexDirection: "row", gap: 10 },
   metricPill: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 8,
     backgroundColor: "rgba(255,255,255,0.1)",
     borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.15)",
   },
   metricPillIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
+    width: 32,
+    height: 32,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
   },
-  metricPillValue: {
-    fontSize: 15,
-    fontWeight: "900",
+  metricPillValue: { 
+    fontSize: 13, 
+    fontWeight: "900", 
     color: COLORS.white,
+    lineHeight: 16,
   },
   metricPillLabel: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: "600",
     color: "rgba(255,255,255,0.6)",
     marginTop: 2,
   },
 
-  // ─── Wave ───
+  syncCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.12)",
+    borderLeftWidth: 3,
+  },
+  syncIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  syncTitle: { fontSize: 14, fontWeight: "800", color: COLORS.white },
+  syncMessage: { fontSize: 11, fontWeight: "600", marginTop: 2, lineHeight: 14 },
+
   waveContainer: {
     height: 30,
     backgroundColor: COLORS.primary,
@@ -781,13 +946,11 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 30,
   },
 
-  // ─── Content ───
   content: {
     paddingHorizontal: THEME.spacing.lg,
     paddingTop: THEME.spacing.md,
   },
 
-  // Period Selector
   periodSelector: {
     flexDirection: "row",
     backgroundColor: COLORS.surface,
@@ -806,20 +969,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 12,
   },
-  periodBtnActive: {
-    backgroundColor: COLORS.accent,
-  },
-  periodText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: COLORS.muted,
-  },
-  periodTextActive: {
-    color: COLORS.white,
-    fontWeight: "800",
-  },
+  periodBtnActive: { backgroundColor: COLORS.accent },
+  periodText: { fontSize: 14, fontWeight: "700", color: COLORS.muted },
+  periodTextActive: { color: COLORS.white, fontWeight: "800" },
 
-  // Breakdown Card
   breakdownCard: {
     backgroundColor: COLORS.surface,
     borderRadius: 24,
@@ -829,66 +982,39 @@ const styles = StyleSheet.create({
     borderColor: "rgba(11,19,32,0.04)",
     ...THEME.elevation.subtle,
   },
-  breakdownHeader: {
-    marginBottom: THEME.spacing.md,
-  },
-  breakdownTitle: {
-    fontSize: 17,
-    fontWeight: "800",
-    color: COLORS.text,
-  },
+  breakdownHeader: { marginBottom: THEME.spacing.md },
+  breakdownTitle: { fontSize: 17, fontWeight: "800", color: COLORS.text },
   breakdownSubtitle: {
     fontSize: 13,
     fontWeight: "500",
     color: COLORS.muted,
     marginTop: 2,
   },
-  sparkLines: {
-    gap: 16,
-  },
-  sparkRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
+  sparkLines: { gap: 16 },
+  sparkRow: { flexDirection: "row", alignItems: "center", gap: 10 },
   sparkLabelWrap: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    width: 70,
+    gap: 6,
+    width: 65,
   },
-  sparkDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  sparkLabel: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: COLORS.text,
-  },
-  sparkBarWrap: {
-    flex: 1,
-  },
+  sparkDot: { width: 10, height: 10, borderRadius: 5 },
+  sparkLabel: { fontSize: 13, fontWeight: "700", color: COLORS.text },
   sparkTrack: {
     height: 8,
     backgroundColor: "rgba(11,19,32,0.06)",
     borderRadius: 4,
     overflow: "hidden",
   },
-  sparkFill: {
-    height: "100%",
-    borderRadius: 4,
-  },
+  sparkFill: { height: "100%", borderRadius: 4 },
   sparkValue: {
-    width: 80,
+    width: 90,
     textAlign: "right",
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "800",
     color: COLORS.text,
   },
 
-  // Metrics Grid
   metricsGrid: {
     flexDirection: "row",
     gap: THEME.spacing.sm,
@@ -913,40 +1039,32 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   metricValue: {
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: "900",
     color: COLORS.text,
     letterSpacing: -0.3,
+    textAlign: "center",
+    lineHeight: 18,
   },
   metricLabel: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: "700",
     color: COLORS.muted,
     marginTop: 4,
     textTransform: "uppercase",
     letterSpacing: 0.5,
+    textAlign: "center",
   },
 
-  // Shop Section
-  shopSection: {
-    marginTop: THEME.spacing.sm,
-  },
+  shopSection: { marginTop: THEME.spacing.sm },
   shopSectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: THEME.spacing.md,
   },
-  shopSectionTitle: {
-    fontSize: 17,
-    fontWeight: "800",
-    color: COLORS.text,
-  },
-  shopSectionUpdated: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: COLORS.muted,
-  },
+  shopSectionTitle: { fontSize: 17, fontWeight: "800", color: COLORS.text },
+  shopSectionUpdated: { fontSize: 11, fontWeight: "600", color: COLORS.muted },
   shopCard: {
     backgroundColor: COLORS.surface,
     borderRadius: 24,
@@ -971,50 +1089,38 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(196,154,108,0.2)",
   },
-  shopCardInfo: {
-    flex: 1,
-  },
-  shopCardName: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: COLORS.text,
-  },
+  shopCardName: { fontSize: 16, fontWeight: "800", color: COLORS.text },
   shopCardOwner: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "600",
     color: COLORS.muted,
     marginTop: 2,
   },
-  chipsRow: {
-    flexDirection: "row",
-    gap: 10,
-  },
+  chipsRow: { flexDirection: "row", gap: 10 },
   detailChip: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 8,
     backgroundColor: COLORS.background,
     borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     borderWidth: 1,
     borderColor: "rgba(11,19,32,0.06)",
   },
-  detailChipText: {
-    flex: 1,
-  },
   detailChipLabel: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: "700",
     color: COLORS.muted,
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   detailChipValue: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "700",
     color: COLORS.text,
     marginTop: 2,
+    lineHeight: 16,
   },
 });

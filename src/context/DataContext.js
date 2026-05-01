@@ -1,9 +1,12 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ref, get, set } from 'firebase/database';
+import { FIREBASE_ENABLED, firebaseDatabase } from '../config/firebaseConfig';
 
 export const DataContext = createContext();
 
 export const DataProvider = ({ children }) => {
+  const FIREBASE_ROOT_PATH = 'shopiii/default';
   const [entries, setEntries] = useState([]);
   const [productPrices, setProductPrices] = useState([]);
   const [shopDetails, setShopDetails] = useState({
@@ -14,6 +17,12 @@ export const DataProvider = ({ children }) => {
   });
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
+
+  // Sync tracking state
+  const [lastSyncTime, setLastSyncTime] = useState(null);
+  const [isSynced, setIsSynced] = useState(false);
+  const [syncStatus, setSyncStatus] = useState('idle'); // idle, syncing, success, error
+  const [dataStorageAge, setDataStorageAge] = useState(null);
 
   // Load shop details from storage
   const loadShopDetails = useCallback(async () => {
@@ -61,7 +70,27 @@ export const DataProvider = ({ children }) => {
     loadShopDetails();
     loadEntriesForDate(new Date());
     loadProductPrices();
+    loadSyncMetadata();
   }, [loadEntriesForDate, loadProductPrices, loadShopDetails]);
+
+  // Load sync metadata
+  const loadSyncMetadata = useCallback(async () => {
+    try {
+      const syncData = await AsyncStorage.getItem('syncMetadata');
+      if (syncData) {
+        const parsed = JSON.parse(syncData);
+        setLastSyncTime(parsed.lastSyncTime ? new Date(parsed.lastSyncTime) : null);
+        setIsSynced(parsed.isSynced || false);
+        // Calculate data age
+        if (parsed.lastDataModified) {
+          const age = Date.now() - new Date(parsed.lastDataModified).getTime();
+          setDataStorageAge(age);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading sync metadata:', error);
+    }
+  }, []);
 
   // Format date for storage key (YYYY-MM-DD)
   const formatDateKey = (date) => {
@@ -74,6 +103,9 @@ export const DataProvider = ({ children }) => {
       const dateKey = formatDateKey(selectedDate);
       await AsyncStorage.setItem(`entries_${dateKey}`, JSON.stringify(newEntries));
       setEntries(newEntries);
+      // Mark data as not synced
+      setIsSynced(false);
+      updateSyncMetadata({ isSynced: false, lastDataModified: new Date().toISOString() });
     } catch (error) {
       console.error('Error saving entries:', error);
     }
@@ -84,6 +116,9 @@ export const DataProvider = ({ children }) => {
     try {
       await AsyncStorage.setItem('product_prices', JSON.stringify(newProducts));
       setProductPrices(newProducts);
+      // Mark data as not synced
+      setIsSynced(false);
+      updateSyncMetadata({ isSynced: false, lastDataModified: new Date().toISOString() });
     } catch (error) {
       console.error('Error saving product prices:', error);
     }
@@ -257,6 +292,139 @@ export const DataProvider = ({ children }) => {
     await loadEntriesForDate(date);
   };
 
+  // Update sync metadata
+  const updateSyncMetadata = async (updates) => {
+    try {
+      const current = await AsyncStorage.getItem('syncMetadata');
+      const data = current ? JSON.parse(current) : {};
+      const updated = { ...data, ...updates };
+      await AsyncStorage.setItem('syncMetadata', JSON.stringify(updated));
+      if (updates.lastSyncTime) setLastSyncTime(new Date(updates.lastSyncTime));
+      if (updates.isSynced !== undefined) setIsSynced(updates.isSynced);
+    } catch (error) {
+      console.error('Error updating sync metadata:', error);
+    }
+  };
+
+  const getCloudRootRef = () => {
+    if (!firebaseDatabase) {
+      return null;
+    }
+
+    return ref(firebaseDatabase, FIREBASE_ROOT_PATH);
+  };
+
+  const loadLocalSnapshot = async () => {
+    const allKeys = await AsyncStorage.getAllKeys();
+    const entryKeys = allKeys.filter((key) => key.startsWith('entries_'));
+
+    const entriesByDate = {};
+    for (const key of entryKeys) {
+      const stored = await AsyncStorage.getItem(key);
+      entriesByDate[key.replace('entries_', '')] = stored ? JSON.parse(stored) : [];
+    }
+
+    const [storedShopDetails, storedProductPrices] = await Promise.all([
+      AsyncStorage.getItem('shopDetails'),
+      AsyncStorage.getItem('product_prices'),
+    ]);
+
+    return {
+      entriesByDate,
+      shopDetails: storedShopDetails ? JSON.parse(storedShopDetails) : shopDetails,
+      productPrices: storedProductPrices ? JSON.parse(storedProductPrices) : productPrices,
+    };
+  };
+
+  // Upload data to Firebase
+  const uploadToFirebase = useCallback(async () => {
+    if (!FIREBASE_ENABLED || !firebaseDatabase) {
+      console.warn('Firebase not configured');
+      return { success: false, message: 'Firebase not configured' };
+    }
+    try {
+      setSyncStatus('syncing');
+      const snapshot = await loadLocalSnapshot();
+      const cloudRoot = getCloudRootRef();
+
+      await set(cloudRoot, {
+        entriesByDate: snapshot.entriesByDate,
+        productPrices: snapshot.productPrices,
+        shopDetails: snapshot.shopDetails,
+        syncMeta: {
+          lastSyncTime: new Date().toISOString(),
+          lastDataModified: new Date().toISOString(),
+        },
+      });
+      
+      // Mark as synced
+      await updateSyncMetadata({
+        isSynced: true,
+        lastSyncTime: new Date().toISOString(),
+        lastDataModified: new Date().toISOString(),
+      });
+      setSyncStatus('success');
+      setIsSynced(true);
+      return { success: true, message: 'Data synced successfully' };
+    } catch (error) {
+      console.error('Error uploading to Firebase:', error);
+      setSyncStatus('error');
+      return { success: false, message: error.message };
+    }
+  }, [entries, productPrices, shopDetails]);
+
+  // Fetch data from Firebase
+  const fetchFromFirebase = useCallback(async () => {
+    if (!FIREBASE_ENABLED || !firebaseDatabase) {
+      console.warn('Firebase not configured');
+      return { success: false, message: 'Firebase not configured' };
+    }
+    try {
+      setSyncStatus('syncing');
+      const cloudRoot = getCloudRootRef();
+      const snapshot = await get(cloudRoot);
+
+      if (!snapshot.exists()) {
+        setSyncStatus('error');
+        return { success: false, message: 'No cloud data found' };
+      }
+
+      const data = snapshot.val() || {};
+      const restoredShopDetails = data.shopDetails || shopDetails;
+      const restoredProductPrices = Array.isArray(data.productPrices) ? data.productPrices : [];
+      const restoredEntriesByDate = data.entriesByDate || {};
+
+      await AsyncStorage.setItem('shopDetails', JSON.stringify(restoredShopDetails));
+      await AsyncStorage.setItem('product_prices', JSON.stringify(restoredProductPrices));
+
+      const entryDates = Object.keys(restoredEntriesByDate);
+      for (const dateKey of entryDates) {
+        await AsyncStorage.setItem(`entries_${dateKey}`, JSON.stringify(restoredEntriesByDate[dateKey] || []));
+      }
+
+      const currentDateKey = formatDateKey(selectedDate);
+      const restoredEntries = restoredEntriesByDate[currentDateKey] || [];
+
+      setShopDetails(restoredShopDetails);
+      setProductPrices(restoredProductPrices);
+      setEntries(restoredEntries);
+
+      const syncMeta = data.syncMeta || {};
+      await updateSyncMetadata({
+        isSynced: true,
+        lastSyncTime: syncMeta.lastSyncTime || new Date().toISOString(),
+        lastDataModified: syncMeta.lastDataModified || new Date().toISOString(),
+      });
+      
+      setSyncStatus('success');
+      return { success: true, message: 'Data fetched successfully' };
+    } catch (error) {
+      console.error('Error fetching from Firebase:', error);
+      setSyncStatus('error');
+      return { success: false, message: error.message };
+    }
+  }, [selectedDate, shopDetails]);
+
   const value = {
     entries,
     productPrices,
@@ -276,6 +444,14 @@ export const DataProvider = ({ children }) => {
     getProductByBarcode,
     upsertProductPrice,
     deleteProductPrice,
+    // Sync related
+    lastSyncTime,
+    isSynced,
+    syncStatus,
+    dataStorageAge,
+    uploadToFirebase,
+    fetchFromFirebase,
+    updateSyncMetadata,
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
