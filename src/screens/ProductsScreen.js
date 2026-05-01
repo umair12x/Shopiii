@@ -392,7 +392,7 @@ export const ProductsScreen = () => {
       >
         {isHighlighted && (
           <View style={styles.foundBadge}>
-            <MaterialCommunityIcons name="barcode-scan" size={14} color={COLORS.white} />
+            <MaterialCommunityIcons name="barcode" size={14} color={COLORS.white} />
             <Text style={styles.foundBadgeText}>Found via scan</Text>
           </View>
         )}
@@ -455,7 +455,7 @@ export const ProductsScreen = () => {
             onPress={() => openScanner('find')} 
             style={styles.findBtn}
           >
-            <MaterialCommunityIcons name="barcode-scan" size={16} color={COLORS.primary} />
+            <MaterialCommunityIcons name="barcode" size={16} color={COLORS.primary} />
             <Text style={styles.findBtnText}>Find</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => handleDelete(item)} style={styles.deleteBtn}>
@@ -490,7 +490,7 @@ export const ProductsScreen = () => {
             <View style={styles.header}>
               <View style={styles.headerContent}>
                 <View style={styles.headerIconWrap}>
-                  <MaterialCommunityIcons name="barcode-scan" size={28} color={COLORS.white} />
+                  <MaterialCommunityIcons name="barcode" size={28} color={COLORS.white} />
                 </View>
                 <View>
                   <Text style={styles.title}>Product Prices</Text>
@@ -504,7 +504,7 @@ export const ProductsScreen = () => {
                   <Text style={styles.primaryBtnText}>Add Product</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.secondaryBtn} onPress={() => openScanner('add')} activeOpacity={0.8}>
-                  <MaterialCommunityIcons name="barcode-scan" size={20} color={COLORS.accent} />
+                  <MaterialCommunityIcons name="barcode" size={20} color={COLORS.accent} />
                   <Text style={styles.secondaryBtnText}>Scan to Add</Text>
                 </TouchableOpacity>
               </View>
@@ -564,7 +564,7 @@ export const ProductsScreen = () => {
                 </TouchableOpacity>
               ) : (
                 <TouchableOpacity onPress={() => openScanner('find')}>
-                  <MaterialCommunityIcons name="barcode-scan" size={22} color={COLORS.accent} />
+                  <MaterialCommunityIcons name="barcode" size={22} color={COLORS.accent} />
                 </TouchableOpacity>
               )}
             </View>
@@ -602,7 +602,7 @@ export const ProductsScreen = () => {
                   onPress={() => openScanner('find')} 
                   activeOpacity={0.8}
                 >
-                  <MaterialCommunityIcons name="barcode-scan" size={20} color={COLORS.accent} />
+                  <MaterialCommunityIcons name="barcode" size={20} color={COLORS.accent} />
                   <Text style={styles.emptyScanText}>Find by Barcode</Text>
                 </TouchableOpacity>
               </View>
@@ -675,7 +675,7 @@ export const ProductsScreen = () => {
                         setTimeout(() => openScanner('add'), 300);
                       }}
                     >
-                      <MaterialCommunityIcons name="barcode-scan" size={20} color={COLORS.accent} />
+                      <MaterialCommunityIcons name="barcode" size={20} color={COLORS.accent} />
                     </TouchableOpacity>
                   </View>
                 </View>

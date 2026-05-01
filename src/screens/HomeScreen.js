@@ -428,7 +428,7 @@ export const HomeScreen = () => {
               icon="wallet-outline"
               label="Cash"
               value={current.cashInHand}
-              color={COLORS.primary}
+              color={COLORS.success}
               delay={300}
             />
             <MetricPill

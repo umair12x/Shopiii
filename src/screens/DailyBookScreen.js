@@ -4,6 +4,7 @@ import React, {
   useRef,
   useCallback,
   useEffect,
+  useMemo,
 } from "react";
 import {
   View,
@@ -49,7 +50,7 @@ const AnimatedCounter = ({ value, prefix = "", suffix = "" }) => {
   return (
     <Text style={styles.counterText}>
       {prefix}
-   {Number(Math.round(display || 0)).toLocaleString()}
+      {Number(Math.round(display || 0)).toLocaleString()}
       {suffix}
     </Text>
   );
@@ -175,9 +176,27 @@ export const DailyBookScreen = () => {
   const contentFade = useRef(new Animated.Value(0)).current;
   const contentSlide = useRef(new Animated.Value(40)).current;
   const fabScale = useRef(new Animated.Value(1)).current;
-  const listFade = useRef(new Animated.Value(0)).current;
+
+  // Scroll-driven header animation
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   const totals = calculateTotals();
+  const flatListRef = useRef(null);
+
+  // Reverse entries so newest appears at top
+  const reversedEntries = useMemo(() => {
+    return [...entries].reverse();
+  }, [entries]);
+
+  // Calculate dynamic bottom padding to prevent FAB blocking last item
+  const listBottomPadding = useMemo(() => {
+    const basePadding = tabBarHeight + 100; // FAB height + safe margin
+    // Add extra space when only 1 or few items so last item isn't blocked
+    if (entries.length <= 2) {
+      return basePadding + 120; // Extra breathing room for sparse lists
+    }
+    return basePadding;
+  }, [entries.length, tabBarHeight]);
 
   // Entrance animation
   useEffect(() => {
@@ -209,14 +228,28 @@ export const DailyBookScreen = () => {
             useNativeDriver: true,
           }),
         ]),
-        Animated.timing(listFade, {
-          toValue: 1,
-          duration: 400,
-          useNativeDriver: true,
-        }),
       ]).start();
     }
-  }, [loading, headerFade, headerSlide, contentFade, contentSlide, listFade]);
+  }, [loading, headerFade, headerSlide, contentFade, contentSlide]);
+
+  // Interpolate header animations based on scroll
+  const headerTranslateY = scrollY.interpolate({
+    inputRange: [0, 120],
+    outputRange: [0, -60],
+    extrapolate: 'clamp',
+  });
+
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [0, 80],
+    outputRange: [1, 0],
+    extrapolate: 'clamp',
+  });
+
+  const compactHeaderOpacity = scrollY.interpolate({
+    inputRange: [60, 120],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
 
   const handleAddEntry = useCallback(() => {
     setEditingEntry(null);
@@ -277,26 +310,140 @@ export const DailyBookScreen = () => {
     );
   }
 
+  // ─── Render Item ───
+  const renderItem = useCallback(({ item, index }) => (
+    <View style={styles.entryWrap}>
+      <EntryItem
+        entry={item}
+        onEdit={handleEditEntry}
+        onDelete={deleteEntry}
+        onTogglePayment={togglePaymentStatus}
+      />
+    </View>
+  ), [handleEditEntry, deleteEntry, togglePaymentStatus]);
+
+  // ─── List Header (Totals + Section Title) ───
+  const ListHeaderComponent = useCallback(() => (
+    <View>
+      <View style={styles.totalsWrapper}>
+        <TotalsSummary totals={totals} />
+      </View>
+
+      <View style={styles.sectionHeader}>
+        <View style={styles.sectionHeaderLeft}>
+          <View style={styles.sectionIconWrap}>
+            <MaterialCommunityIcons
+              name="format-list-bulleted"
+              size={18}
+              color={COLORS.accent}
+            />
+          </View>
+          <Text style={styles.sectionTitle}>Transactions</Text>
+        </View>
+        {entries.length > 0 && (
+          <Text style={styles.sectionCount}>
+            {entries.length} record{entries.length !== 1 ? "s" : ""}
+          </Text>
+        )}
+      </View>
+    </View>
+  ), [totals, entries.length]);
+
+  // ─── Empty State ───
+  const ListEmptyComponent = useCallback(() => (
+    <View style={styles.emptyState}>
+      <View style={styles.emptyIconRing}>
+        <View style={styles.emptyIconBg}>
+          <MaterialCommunityIcons
+            name="book-open-page-variant"
+            size={48}
+            color={COLORS.accent}
+          />
+        </View>
+      </View>
+      <Text style={styles.emptyTitle}>No entries yet</Text>
+      <Text style={styles.emptyDesc}>
+        Your ledger is empty. Add your first transaction to start
+        tracking.
+      </Text>
+      <TouchableOpacity
+        style={styles.emptyCta}
+        onPress={handleAddEntry}
+        activeOpacity={0.8}
+      >
+        <MaterialCommunityIcons
+          name="plus"
+          size={20}
+          color={COLORS.white}
+        />
+        <Text style={styles.emptyCtaText}>Add Entry</Text>
+      </TouchableOpacity>
+    </View>
+  ), [handleAddEntry]);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
 
       <View style={styles.container}>
-        {/* ═══ HEADER ═══ */}
+        {/* ═══ COMPACT HEADER (appears on scroll) ═══ */}
+        <Animated.View
+          style={[
+            styles.compactHeader,
+            { opacity: compactHeaderOpacity }
+          ]}
+        >
+          <View style={styles.compactHeaderContent}>
+            <View style={styles.compactHeaderLeft}>
+              <MaterialCommunityIcons
+                name="calendar-today"
+                size={14}
+                color="rgba(255,255,255,0.8)"
+              />
+              <Text style={styles.compactDateText}>
+                {formatDateDisplay(selectedDate)}
+              </Text>
+            </View>
+            <View style={styles.compactTotals}>
+              <Text style={styles.compactTotalLabel}>Sales</Text>
+              <Text style={styles.compactTotalValue}>
+                {Number(totals?.totalSales || 0).toLocaleString()}
+              </Text>
+            </View>
+            <View style={styles.compactTotals}>
+              <Text style={styles.compactTotalLabel}>Profit</Text>
+              <Text style={[
+                styles.compactTotalValue,
+                { color: totals.totalProfit >= 0 ? "#22c55e" : "#ef4444" }
+              ]}>
+                {totals.totalProfit >= 0 ? "+" : ""}
+                {Number(totals?.totalProfit || 0).toLocaleString()}
+              </Text>
+            </View>
+          </View>
+        </Animated.View>
+
+        {/* ═══ EXPANDABLE HEADER ═══ */}
         <Animated.View
           style={[
             styles.header,
             {
               opacity: headerFade,
-              transform: [{ translateY: headerSlide }],
+              transform: [
+                { translateY: headerSlide },
+                { translateY: headerTranslateY }
+              ],
             },
           ]}
         >
-          {/* Decorative top strip */}
           <View style={styles.headerStrip} />
 
-          <View style={styles.headerContent}>
-            {/* Top row: Date + Status */}
+          <Animated.View 
+            style={[
+              styles.headerContent,
+              { opacity: headerOpacity }
+            ]}
+          >
             <View style={styles.headerTopRow}>
               <View style={styles.dateChip}>
                 <MaterialCommunityIcons
@@ -311,7 +458,6 @@ export const DailyBookScreen = () => {
               <StatusBadge profit={totals.totalProfit} />
             </View>
 
-            {/* Middle: Title + Count */}
             <View style={styles.headerMiddle}>
               <View>
                 <Text style={styles.headerTitle}>Daily Ledger</Text>
@@ -325,33 +471,20 @@ export const DailyBookScreen = () => {
               </View>
             </View>
 
-            {/* Bottom: Quick totals strip */}
             <View style={styles.totalsStrip}>
               <View style={styles.totalsStripItem}>
                 <Text style={styles.totalsStripLabel}>Sales</Text>
-                <Text
-                  style={[
-                    styles.totalsStripValue,
-                    { color: COLORS.accent },
-                  ]}
-                >
-                 {Number(totals?.totalSales || 0).toLocaleString()}
+                <Text style={[styles.totalsStripValue, { color: COLORS.accent }]}>
+                  {Number(totals?.totalSales || 0).toLocaleString()}
                 </Text>
               </View>
               <View style={styles.totalsStripDivider} />
               <View style={styles.totalsStripItem}>
                 <Text style={styles.totalsStripLabel}>Profit</Text>
-                <Text
-                  style={[
-                    styles.totalsStripValue,
-                    {
-                      color:
-                        totals.totalProfit >= 0
-                          ? COLORS.success
-                          : COLORS.error,
-                    },
-                  ]}
-                >
+                <Text style={[
+                  styles.totalsStripValue,
+                  { color: totals.totalProfit >= 0 ? COLORS.success : COLORS.error }
+                ]}>
                   {totals.totalProfit >= 0 ? "+" : ""}
                   {Number(totals?.totalProfit || 0).toLocaleString()}
                 </Text>
@@ -359,124 +492,55 @@ export const DailyBookScreen = () => {
               <View style={styles.totalsStripDivider} />
               <View style={styles.totalsStripItem}>
                 <Text style={styles.totalsStripLabel}>Cash</Text>
-                <Text
-                  style={[
-                    styles.totalsStripValue,
-                    { color: COLORS.primary },
-                  ]}
-                >
-               {Number(totals?.totalProfit || 0).toLocaleString()}
+                <Text style={[styles.totalsStripValue, { color: COLORS.white }]}>
+                  {Number(totals?.cashInHand || 0).toLocaleString()}
                 </Text>
               </View>
             </View>
-          </View>
+          </Animated.View>
         </Animated.View>
 
-        {/* ═══ CONTENT ═══ */}
+        {/* ═══ SCROLLABLE LIST (Full screen overlay) ═══ */}
         <Animated.View
           style={[
-            styles.content,
+            styles.listContainer,
             {
               opacity: contentFade,
               transform: [{ translateY: contentSlide }],
             },
           ]}
         >
-          {/* TotalsSummary component preserved exactly */}
-          <View style={styles.totalsWrapper}>
-            <TotalsSummary totals={totals} />
-          </View>
-
-          {/* Section Header */}
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionHeaderLeft}>
-              <View style={styles.sectionIconWrap}>
-                <MaterialCommunityIcons
-                  name="format-list-bulleted"
-                  size={18}
-                  color={COLORS.accent}
-                />
-              </View>
-              <Text style={styles.sectionTitle}>Transactions</Text>
-            </View>
-            {entries.length > 0 && (
-              <Text style={styles.sectionCount}>
-                {entries.length} record{entries.length !== 1 ? "s" : ""}
-              </Text>
+          <FlatList
+            ref={flatListRef}
+            data={reversedEntries}
+            keyExtractor={(item) => item.id}
+            renderItem={renderItem}
+            ListHeaderComponent={ListHeaderComponent}
+            ListEmptyComponent={ListEmptyComponent}
+            contentContainerStyle={[
+              styles.flatListContent,
+              { paddingBottom: listBottomPadding }
+            ]}
+            showsVerticalScrollIndicator={false}
+            keyboardDismissMode="interactive"
+            keyboardShouldPersistTaps="handled"
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={10}
+            windowSize={10}
+            initialNumToRender={8}
+            onScroll={Animated.event(
+              [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+              { useNativeDriver: false }
             )}
-          </View>
-
-          {/* Entries List */}
-          <Animated.View style={{ opacity: listFade, flex: 1 }}>
-            <FlatList
-              data={entries}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item, index }) => (
-                <View
-                  style={[
-                    styles.entryWrap,
-                    index === 0 && styles.entryWrapFirst,
-                    index === entries.length - 1 && styles.entryWrapLast,
-                  ]}
-                >
-                  <EntryItem
-                    entry={item}
-                    onEdit={handleEditEntry}
-                    onDelete={deleteEntry}
-                    onTogglePayment={togglePaymentStatus}
-                  />
-                </View>
-              )}
-              ListEmptyComponent={
-                <View style={styles.emptyState}>
-                  <View style={styles.emptyIconRing}>
-                    <View style={styles.emptyIconBg}>
-                      <MaterialCommunityIcons
-                        name="book-open-page-variant"
-                        size={48}
-                        color={COLORS.accent}
-                      />
-                    </View>
-                  </View>
-                  <Text style={styles.emptyTitle}>No entries yet</Text>
-                  <Text style={styles.emptyDesc}>
-                    Your ledger is empty. Add your first transaction to start
-                    tracking.
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.emptyCta}
-                    onPress={handleAddEntry}
-                    activeOpacity={0.8}
-                  >
-                    <MaterialCommunityIcons
-                      name="plus"
-                      size={20}
-                      color={COLORS.white}
-                    />
-                    <Text style={styles.emptyCtaText}>Add Entry</Text>
-                  </TouchableOpacity>
-                </View>
-              }
-              contentContainerStyle={[
-                styles.listContent,
-                { paddingBottom: tabBarHeight + 92 },
-              ]}
-              showsVerticalScrollIndicator={false}
-              scrollIndicatorInsets={{ bottom: tabBarHeight + 8 }}
-              contentInsetAdjustmentBehavior="automatic"
-              decelerationRate="normal"
-              bounces={true}
-              keyboardDismissMode="interactive"
-              nestedScrollEnabled={true}
-            />
-          </Animated.View>
+            scrollEventThrottle={16}
+          />
         </Animated.View>
 
-        {/* ═══ FAB ═══ */}
+        {/* ═══ FAB (Fixed position above content) ═══ */}
         <FabButton
           onPress={handleAddEntry}
           scaleAnim={fabScale}
-          bottomOffset={tabBarHeight + 12}
+          bottomOffset={tabBarHeight + 20}
         />
 
         {/* EntryForm preserved exactly */}
@@ -508,6 +572,50 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
 
+  // ─── Compact Header ───
+  compactHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: THEME.spacing.lg,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
+  },
+  compactHeaderContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  compactHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  compactDateText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.9)',
+  },
+  compactTotals: {
+    alignItems: 'flex-end',
+  },
+  compactTotalLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.5)',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  compactTotalValue: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: COLORS.white,
+  },
+
   // ─── Loading ───
   loadingScreen: {
     flex: 1,
@@ -533,10 +641,11 @@ const styles = StyleSheet.create({
     color: COLORS.muted,
   },
 
-  // ─── Header ───
+  // ─── Header (Fixed) ───
   header: {
     backgroundColor: COLORS.primary,
     position: "relative",
+    zIndex: 5,
   },
   headerStrip: {
     height: 4,
@@ -546,7 +655,7 @@ const styles = StyleSheet.create({
   headerContent: {
     paddingHorizontal: THEME.spacing.lg,
     paddingTop: THEME.spacing.lg,
-    paddingBottom: THEME.spacing.xl,
+    paddingBottom: THEME.spacing.md,
   },
   headerTopRow: {
     flexDirection: "row",
@@ -596,7 +705,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-end",
-    marginBottom: THEME.spacing.lg,
+    marginBottom: THEME.spacing.md,
   },
   headerTitle: {
     fontSize: 28,
@@ -667,13 +776,19 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
 
-  // ─── Content ───
-  content: {
+  // ─── Scrollable List (Takes remaining space) ───
+  listContainer: {
     flex: 1,
-    marginTop: -16,
+    marginTop: -8,
   },
+  flatListContent: {
+    paddingHorizontal: THEME.spacing.lg,
+    // paddingBottom is now dynamic via inline style
+  },
+
+  // Totals Component Wrapper
   totalsWrapper: {
-    marginTop: 0,
+    marginTop: 8,
   },
 
   // Section Header
@@ -681,7 +796,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: THEME.spacing.lg,
     paddingTop: THEME.spacing.lg,
     paddingBottom: THEME.spacing.sm,
   },
@@ -713,20 +827,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
 
-  // List
-  listContent: {
-    paddingHorizontal: THEME.spacing.lg,
-    paddingTop: THEME.spacing.sm,
-    paddingBottom: THEME.spacing.lg,
-  },
+  // Entry Items
   entryWrap: {
     marginBottom: 8,
-  },
-  entryWrapFirst: {
-    marginTop: 4,
-  },
-  entryWrapLast: {
-    marginBottom: 0,
   },
 
   // Empty State

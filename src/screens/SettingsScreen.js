@@ -527,7 +527,7 @@ export const SettingsScreen = ({ navigation }) => {
           <Text style={styles.sectionLabel}>Quick Actions</Text>
           <View style={styles.actionsGrid}>
             <ActionCard
-              icon="barcode-scan"
+              icon="barcode"
               title="Products"
               desc="Manage catalog & barcodes"
               color={COLORS.accent}
