@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   Alert,
+  Animated,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, THEME } from '../config/colors';
@@ -13,132 +14,296 @@ import { formatCurrency } from '../utils/currencyFormatter';
 export const EntryItem = ({ entry, onEdit, onDelete, onTogglePayment }) => {
   const isProfit = entry.profit > 0;
   const isLoss = entry.profit < 0;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const swipeAnim = useRef(new Animated.Value(0)).current;
 
-  const handleDelete = () => {
-    Alert.alert('Delete Entry', `Are you sure you want to delete "${entry.itemName}"?`, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', onPress: () => onDelete(entry.id), style: 'destructive' },
-    ]);
+  const handlePress = () => {
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 0.97,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 3,
+        tension: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
   };
 
+  const handleDelete = () => {
+    Alert.alert(
+      'Delete Entry',
+      `Are you sure you want to delete "${entry.itemName}"?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          onPress: () => {
+            Animated.timing(swipeAnim, {
+              toValue: -500,
+              duration: 300,
+              useNativeDriver: true,
+            }).start(() => onDelete(entry.id));
+          }, 
+          style: 'destructive' 
+        },
+      ]
+    );
+  };
+
+  const profitPercentage = entry.salePrice > 0 
+    ? ((entry.profit / entry.salePrice) * 100).toFixed(1)
+    : '0';
+
   return (
-    <View style={styles.container}>
-      <View style={styles.topRow}>
-        <View style={styles.info}>
-          <Text style={styles.name}>{entry.itemName}</Text>
-          <Text style={styles.meta}>{`Cost ${formatCurrency(entry.purchasePrice)} • Sale ${formatCurrency(entry.salePrice)}`}</Text>
+    <Animated.View style={[
+      styles.container,
+      {
+        transform: [
+          { translateX: swipeAnim },
+          { scale: scaleAnim }
+        ]
+      }
+    ]}>
+      <TouchableOpacity onPress={handlePress} activeOpacity={1}>
+        {/* Main Content */}
+        <View style={styles.contentWrapper}>
+          <View style={styles.leftSection}>
+            <View style={[
+              styles.profitIndicator,
+              isProfit ? styles.profitBadge : isLoss ? styles.lossBadge : styles.neutralBadge
+            ]}>
+              <MaterialCommunityIcons 
+                name={isProfit ? 'trending-up' : isLoss ? 'trending-down' : 'minus'} 
+                size={20} 
+                color={isProfit ? COLORS.success : isLoss ? COLORS.error : COLORS.muted} 
+              />
+            </View>
+            
+            <View style={styles.itemInfo}>
+              <Text style={styles.name} numberOfLines={1}>{entry.itemName}</Text>
+              <View style={styles.priceRow}>
+                <View style={styles.priceChip}>
+                  <MaterialCommunityIcons name="arrow-down" size={12} color={COLORS.warning} />
+                  <Text style={styles.priceText}>{formatCurrency(entry.purchasePrice)}</Text>
+                </View>
+                <View style={styles.priceChip}>
+                  <MaterialCommunityIcons name="arrow-up" size={12} color={COLORS.success} />
+                  <Text style={styles.priceText}>{formatCurrency(entry.salePrice)}</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.rightSection}>
+            <Text style={[
+              styles.profitAmount,
+              isProfit ? { color: COLORS.success } : isLoss ? { color: COLORS.error } : { color: COLORS.muted }
+            ]}>
+              {isProfit ? '+' : ''}{formatCurrency(entry.profit)}
+            </Text>
+            <View style={[
+              styles.percentageChip,
+              isProfit ? styles.percentagePositive : isLoss ? styles.percentageNegative : styles.percentageNeutral
+            ]}>
+              <Text style={[
+                styles.percentageText,
+                { color: isProfit ? COLORS.success : isLoss ? COLORS.error : COLORS.muted }
+              ]}>
+                {isProfit ? '+' : ''}{profitPercentage}%
+              </Text>
+            </View>
+          </View>
         </View>
 
-        <View style={styles.rightCol}>
-          <Text style={[styles.profit, isProfit ? { color: COLORS.success } : { color: COLORS.error }]}>
-            {isProfit ? '+' : ''}{formatCurrency(entry.profit)}
-          </Text>
-          <Text style={styles.profitLabel}>{isProfit ? 'Profit' : isLoss ? 'Loss' : 'Even'}</Text>
-        </View>
-      </View>
-
-      <View style={styles.actions}>
-        <TouchableOpacity
-          onPress={() => onTogglePayment(entry.id)}
-          style={[styles.paymentBtn, entry.isPaymentCollected ? styles.collected : styles.pending]}
-        >
-          <MaterialCommunityIcons
-            name={entry.isPaymentCollected ? 'check-circle-outline' : 'clock-outline'}
-            size={16}
-            color={entry.isPaymentCollected ? COLORS.success : COLORS.warning}
-          />
-          <Text style={styles.paymentText}>{entry.isPaymentCollected ? 'Collected' : 'Pending'}</Text>
-        </TouchableOpacity>
-
-        <View style={styles.rowBtns}>
-          <TouchableOpacity onPress={() => onEdit(entry)} style={styles.iconBtn}>
-            <MaterialCommunityIcons name="pencil" size={18} color={COLORS.text} />
+        {/* Action Buttons */}
+        <View style={styles.actionsSection}>
+          <TouchableOpacity
+            onPress={() => onTogglePayment(entry.id)}
+            style={[
+              styles.paymentBtn, 
+              entry.isPaymentCollected ? styles.collectedBtn : styles.pendingBtn
+            ]}
+            activeOpacity={0.7}
+          >
+            <MaterialCommunityIcons
+              name={entry.isPaymentCollected ? 'check-circle' : 'clock-outline'}
+              size={18}
+              color={entry.isPaymentCollected ? COLORS.success : COLORS.warning}
+            />
+            <Text style={[
+              styles.paymentText,
+              { color: entry.isPaymentCollected ? COLORS.success : COLORS.warning }
+            ]}>
+              {entry.isPaymentCollected ? 'Collected' : 'Pending'}
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={handleDelete} style={[styles.iconBtn, styles.deleteBtn]}>
-            <MaterialCommunityIcons name="trash-can-outline" size={18} color={COLORS.error} />
-          </TouchableOpacity>
+
+          <View style={styles.actionButtons}>
+            <TouchableOpacity 
+              onPress={() => onEdit(entry)} 
+              style={styles.editBtn}
+              activeOpacity={0.7}
+            >
+              <MaterialCommunityIcons name="pencil-outline" size={18} color={COLORS.text} />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              onPress={handleDelete} 
+              style={styles.deleteBtn}
+              activeOpacity={0.7}
+            >
+              <MaterialCommunityIcons name="trash-can-outline" size={18} color={COLORS.error} />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </View>
+      </TouchableOpacity>
+    </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     backgroundColor: COLORS.surface,
-    borderRadius: THEME.borderRadius.md,
-    padding: THEME.spacing.md,
+    borderRadius: 20,
     marginBottom: THEME.spacing.md,
+    borderWidth: 1,
+    borderColor: 'rgba(11,19,32,0.04)',
     ...THEME.elevation.subtle,
+    overflow: 'hidden',
   },
-  topRow: {
+  contentWrapper: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: THEME.spacing.sm,
+    padding: THEME.spacing.md,
+    gap: 12,
   },
-  info: {
+  leftSection: {
     flex: 1,
-    paddingRight: THEME.spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  profitIndicator: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profitBadge: {
+    backgroundColor: 'rgba(46,125,50,0.1)',
+  },
+  lossBadge: {
+    backgroundColor: 'rgba(198,40,40,0.1)',
+  },
+  neutralBadge: {
+    backgroundColor: 'rgba(11,19,32,0.04)',
+  },
+  itemInfo: {
+    flex: 1,
   },
   name: {
     fontSize: THEME.fonts.md,
     color: COLORS.text,
     fontWeight: '700',
-    marginBottom: 6,
+    marginBottom: 8,
+    letterSpacing: -0.2,
   },
-  meta: {
-    fontSize: THEME.fonts.sm,
+  priceRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  priceChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(11,19,32,0.04)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  priceText: {
+    fontSize: THEME.fonts.xs,
     color: COLORS.muted,
+    fontWeight: '600',
   },
-  rightCol: {
+  rightSection: {
     alignItems: 'flex-end',
   },
-  profit: {
+  profitAmount: {
     fontSize: THEME.fonts.lg,
+    fontWeight: '800',
+    marginBottom: 6,
+    letterSpacing: -0.5,
+  },
+  percentageChip: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  percentagePositive: {
+    backgroundColor: 'rgba(46,125,50,0.08)',
+  },
+  percentageNegative: {
+    backgroundColor: 'rgba(198,40,40,0.08)',
+  },
+  percentageNeutral: {
+    backgroundColor: 'rgba(11,19,32,0.04)',
+  },
+  percentageText: {
+    fontSize: THEME.fonts.xs,
     fontWeight: '700',
   },
-  profitLabel: {
-    fontSize: THEME.fonts.sm,
-    color: COLORS.muted,
-  },
-  actions: {
+  actionsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: THEME.spacing.md,
+    paddingBottom: THEME.spacing.md,
+    paddingTop: 4,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(11,19,32,0.04)',
   },
   paymentBtn: {
     paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: THEME.borderRadius.sm,
+    paddingHorizontal: 12,
+    borderRadius: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
-  collected: {
-    backgroundColor: 'rgba(46,125,50,0.12)',
+  collectedBtn: {
+    backgroundColor: 'rgba(46,125,50,0.08)',
   },
-  pending: {
+  pendingBtn: {
     backgroundColor: 'rgba(217,119,6,0.08)',
   },
   paymentText: {
-    color: COLORS.text,
-    fontWeight: '600',
+    fontWeight: '700',
+    fontSize: THEME.fonts.sm,
   },
-  rowBtns: {
+  actionButtons: {
     flexDirection: 'row',
-    gap: THEME.spacing.sm,
+    gap: 8,
   },
-  iconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: THEME.borderRadius.sm,
+  editBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(11,19,32,0.04)',
-    marginLeft: THEME.spacing.sm,
   },
   deleteBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: 'rgba(198,40,40,0.08)',
   },
 });
