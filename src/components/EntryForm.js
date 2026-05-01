@@ -189,7 +189,7 @@ export const EntryForm = ({ visible, onClose, onSubmit, editData = null, itemCou
                     styles.priceInputWrap,
                     focusedField === 'purchase' && styles.inputFocused
                   ]}>
-                    <Text style={styles.currencySymbol}>$</Text>
+                    <Text style={styles.currencySymbol}>Rs</Text>
                     <TextInput 
                       style={styles.priceInput} 
                       value={purchasePrice} 
@@ -217,7 +217,7 @@ export const EntryForm = ({ visible, onClose, onSubmit, editData = null, itemCou
                     styles.priceInputWrap,
                     focusedField === 'sale' && styles.inputFocused
                   ]}>
-                    <Text style={styles.currencySymbol}>$</Text>
+                    <Text style={styles.currencySymbol}>Rs</Text>
                     <TextInput 
                       style={styles.priceInput} 
                       value={salePrice} 
@@ -248,7 +248,7 @@ export const EntryForm = ({ visible, onClose, onSubmit, editData = null, itemCou
                     styles.profitText,
                     { color: parseFloat(profitPreview) >= 0 ? COLORS.success : COLORS.error }
                   ]}>
-                    {parseFloat(profitPreview) >= 0 ? 'Profit' : 'Loss'}: ${Math.abs(parseFloat(profitPreview)).toFixed(2)}
+                    {parseFloat(profitPreview) >= 0 ? 'Profit' : 'Loss'}: Rs {Math.abs(parseFloat(profitPreview)).toFixed(2)}
                   </Text>
                 </Animated.View>
               )}
