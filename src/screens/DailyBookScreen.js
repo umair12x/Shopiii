@@ -493,7 +493,7 @@ export const DailyBookScreen = () => {
               <View style={styles.totalsStripItem}>
                 <Text style={styles.totalsStripLabel}>Cash</Text>
                 <Text style={[styles.totalsStripValue, { color: COLORS.white }]}>
-                  {Number(totals?.cashInHand || 0).toLocaleString()}
+                     {Number(totals?.totalSales || 0).toLocaleString()}
                 </Text>
               </View>
             </View>
