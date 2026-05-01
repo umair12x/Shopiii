@@ -138,43 +138,51 @@ export const HomeScreen = () => {
               <Text style={styles.loaderText}>Loading latest totals...</Text>
             </View>
           ) : (
-            <>
-              <SummaryCard
-                title="Total Profit"
-                amount={todayTotals.totalProfit}
-                backgroundColor={COLORS.profitGreen}
-                textColor={COLORS.success}
-                iconName="trending-up"
-                iconColor={COLORS.success}
-              />
+            <View style={styles.cardRow}>
+              <View style={styles.cardItem}>
+                <SummaryCard
+                  title="Total Profit"
+                  amount={todayTotals.totalProfit}
+                  backgroundColor={COLORS.profitGreen}
+                  textColor={COLORS.success}
+                  iconName="trending-up"
+                  iconColor={COLORS.success}
+                />
+              </View>
 
-              <SummaryCard
-                title="Total Sales"
-                amount={todayTotals.totalSales}
-                backgroundColor={COLORS.light}
-                textColor={COLORS.secondary}
-                iconName="cart-outline"
-                iconColor={COLORS.secondary}
-              />
+              <View style={styles.cardItem}>
+                <SummaryCard
+                  title="Total Sales"
+                  amount={todayTotals.totalSales}
+                  backgroundColor={COLORS.light}
+                  textColor={COLORS.secondary}
+                  iconName="cart-outline"
+                  iconColor={COLORS.secondary}
+                />
+              </View>
 
-              <SummaryCard
-                title="Total Investment"
-                amount={todayTotals.totalInvestment}
-                backgroundColor={COLORS.light}
-                textColor={COLORS.dark}
-                iconName="cash-multiple"
-                iconColor={COLORS.dark}
-              />
+              <View style={styles.cardItem}>
+                <SummaryCard
+                  title="Total Investment"
+                  amount={todayTotals.totalInvestment}
+                  backgroundColor={COLORS.light}
+                  textColor={COLORS.dark}
+                  iconName="cash-multiple"
+                  iconColor={COLORS.dark}
+                />
+              </View>
 
-              <SummaryCard
-                title="Cash in Hand"
-                amount={todayTotals.cashInHand}
-                backgroundColor={COLORS.light}
-                textColor={COLORS.primary}
-                iconName="wallet-outline"
-                iconColor={COLORS.primary}
-              />
-            </>
+              <View style={styles.cardItem}>
+                <SummaryCard
+                  title="Cash in Hand"
+                  amount={todayTotals.cashInHand}
+                  backgroundColor={COLORS.light}
+                  textColor={COLORS.primary}
+                  iconName="wallet-outline"
+                  iconColor={COLORS.primary}
+                />
+              </View>
+            </View>
           )}
         </View>
 
@@ -278,6 +286,17 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: THEME.fonts.sm,
     color: 'rgba(255,255,255,0.9)',
+  },
+  cardRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginHorizontal: -6,
+  },
+  cardItem: {
+    width: '48%',
+    paddingHorizontal: 6,
+    marginBottom: 12,
   },
   shopDetailsCard: {
     backgroundColor: COLORS.surface,
