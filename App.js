@@ -1,22 +1,26 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { DataProvider } from './src/context/DataContext';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { DailyBookScreen } from './src/screens/DailyBookScreen';
 import { DashboardScreen } from './src/screens/DashboardScreen';
+import { ProductsScreen } from './src/screens/ProductsScreen';
 import { PreviousAccountsScreen } from './src/screens/PreviousAccountsScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { COLORS } from './src/config/colors';
+import { AppSplashScreen } from './src/components/AppSplashScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const TAB_ICONS = {
-  Home: 'home-outline',
+  Home: 'storefront-outline',
   DailyBook: 'clipboard-text-outline',
+  Products: 'barcode-scan',
   Dashboard: 'chart-line',
   History: 'history',
   Settings: 'cog-outline',
@@ -57,6 +61,11 @@ function HomeTabs() {
         options={{ title: 'Daily Book' }}
       />
       <Tab.Screen
+        name="Products"
+        component={ProductsScreen}
+        options={{ title: 'Products' }}
+      />
+      <Tab.Screen
         name="Dashboard"
         component={DashboardScreen}
         options={{ title: 'Analytics' }}
@@ -76,18 +85,34 @@ function HomeTabs() {
 }
 
 export default function App() {
+  const [isSplashVisible, setIsSplashVisible] = useState(true);
+
+  const handleSplashFinish = useCallback(() => {
+    setIsSplashVisible(false);
+  }, []);
+
+  if (isSplashVisible) {
+    return (
+      <SafeAreaProvider>
+        <AppSplashScreen onFinish={handleSplashFinish} />
+      </SafeAreaProvider>
+    );
+  }
+
   return (
-    <DataProvider>
-      <NavigationContainer>
-        <Stack.Navigator
-          screenOptions={{
-            headerShown: false,
-            animationEnabled: true,
-          }}
-        >
-          <Stack.Screen name="MainApp" component={HomeTabs} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </DataProvider>
+    <SafeAreaProvider>
+      <DataProvider>
+        <NavigationContainer>
+          <Stack.Navigator
+            screenOptions={{
+              headerShown: false,
+              animationEnabled: true,
+            }}
+          >
+            <Stack.Screen name="MainApp" component={HomeTabs} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </DataProvider>
+    </SafeAreaProvider>
   );
 }
