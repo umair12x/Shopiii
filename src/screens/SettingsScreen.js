@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon as MaterialCommunityIcons } from "../components/AppIcon";
 import { DataContext } from "../context/DataContext";
 import { COLORS, THEME } from "../config/colors";
 

@@ -1,125 +1,155 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Easing, StatusBar, StyleSheet, View, Text, Dimensions } from 'react-native';
-import Svg, { Path, Defs, LinearGradient, Stop, Circle, G, Polygon } from 'react-native-svg';
+import {
+  Animated,
+  Easing,
+  StatusBar,
+  StyleSheet,
+  View,
+  Text,
+  Dimensions,
+} from 'react-native';
+import Svg, {
+  Path,
+  Defs,
+  LinearGradient,
+  Stop,
+  Circle,
+  G,
+  Polygon,
+} from 'react-native-svg';
+import { COLORS } from '../config/colors'; // Adjust path as needed
 
 const { width, height } = Dimensions.get('window');
-const SPLASH_VISIBLE_MS = 2800; // Slightly longer to appreciate the visual setup
+const SPLASH_VISIBLE_MS = 2800;
 
 // ------------------------------------------------------------------
-// 1. PURE CODE LOGO (Recreating the metallic cart + arrow)
+// 1. MINIMALIST CODE LOGO (Using COLORS from config)
 // ------------------------------------------------------------------
 const AnimatedSvg = Animated.createAnimatedComponent(Svg);
 
 const CodeGeneratedLogo = ({ scaleAnim }) => {
   return (
     <AnimatedSvg
-      width="180"
-      height="180"
+      width="160"
+      height="160"
       viewBox="0 0 120 120"
       style={{ transform: [{ scale: scaleAnim }] }}
     >
       <Defs>
-        {/* Metallic Silver Gradient for the Cart and Arrow */}
+        {/* Refined metallic gradient using splash colors */}
         <LinearGradient id="metallic" x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0" stopColor="#FFFFFF" stopOpacity="1" />
-          <Stop offset="0.3" stopColor="#A0AABF" stopOpacity="1" />
-          <Stop offset="0.7" stopColor="#E0E5EC" stopOpacity="1" />
-          <Stop offset="1" stopColor="#78839C" stopOpacity="1" />
+          <Stop offset="0" stopColor={COLORS.splashMetalLight} stopOpacity="0.95" />
+          <Stop offset="0.5" stopColor={COLORS.splashMetalMid} stopOpacity="1" />
+          <Stop offset="1" stopColor={COLORS.splashMetalDark} stopOpacity="1" />
         </LinearGradient>
-        
-        {/* Cyan Glow for the inner data elements */}
+
+        {/* Pure cyan gradient from splash colors */}
         <LinearGradient id="cyanGlow" x1="0" y1="1" x2="0" y2="0">
-          <Stop offset="0" stopColor="#005A70" stopOpacity="1" />
-          <Stop offset="1" stopColor="#00E5FF" stopOpacity="1" />
+          <Stop offset="0" stopColor={COLORS.splashAccentSoft} stopOpacity="1" />
+          <Stop offset="1" stopColor={COLORS.splashAccent} stopOpacity="1" />
         </LinearGradient>
       </Defs>
 
-      {/* Main Cart Body & Growth Trend Line */}
-      <G stroke="url(#metallic)" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" fill="none">
-        {/* Back handle and main diagonal cart frame */}
-        <Path d="M15,35 L30,35 L45,85 L95,85 L102,55" />
-        {/* Growth Arrow line overlapping the cart */}
-        <Path d="M35,60 L55,40 L70,55 L100,20" />
+      {/* Minimalist ring - using splashRing color */}
+      <Circle
+        cx="60"
+        cy="60"
+        r="54"
+        stroke={COLORS.splashRing}
+        strokeWidth="0.8"
+        fill="none"
+      />
+
+      {/* Cart - Simplified, cleaner paths */}
+      <G>
+        {/* Main cart body */}
+        <Path
+          d="M14,35 L30,35 L44,82 L96,82 L103,54"
+          stroke="url(#metallic)"
+          strokeWidth="4.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
+
+        {/* Growth arrow - clean diagonal line */}
+        <Path
+          d="M32,62 L52,42 L70,56 L104,18"
+          stroke="url(#metallic)"
+          strokeWidth="4.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
+
+        {/* Arrowhead */}
+        <Polygon points="94,10 110,8 108,26" fill="url(#metallic)" />
+
+        {/* Wheels - minimal */}
+        <Circle cx="48" cy="98" r="7" fill="url(#metallic)" />
+        <Circle cx="82" cy="98" r="7" fill="url(#metallic)" />
       </G>
 
-      {/* Arrowhead at the top right */}
-      <Polygon points="90,15 108,12 105,30" fill="url(#metallic)" />
-
-      {/* Cart Wheels */}
-      <Circle cx="55" cy="100" r="6" fill="url(#metallic)" />
-      <Circle cx="85" cy="100" r="6" fill="url(#metallic)" />
-
-      {/* Inner Glowing Cyan Data Bars */}
-      <G stroke="url(#cyanGlow)" strokeWidth="5" strokeLinecap="round">
-        <Path d="M58,72 L58,62" />
-        <Path d="M68,72 L68,52" />
-        <Path d="M78,72 L78,60" />
+      {/* Minimal data bars - pure cyan accents */}
+      <G stroke="url(#cyanGlow)" strokeWidth="3.5" strokeLinecap="round">
+        <Path d="M58,70 L58,60" />
+        <Path d="M68,70 L68,50" />
+        <Path d="M78,70 L78,57" />
       </G>
 
-      {/* Connected Data Nodes (Hexagon abstraction) */}
-      <G fill="#00E5FF">
-        <Circle cx="55" cy="52" r="2.5" />
-        <Circle cx="65" cy="46" r="2.5" />
-        <Circle cx="75" cy="50" r="2.5" />
-        {/* Connecting lines between nodes */}
-        <Path d="M55,52 L65,46 L75,50" stroke="#00E5FF" strokeWidth="1" fill="none" />
+      {/* Single node connection - minimal */}
+      <G fill={COLORS.splashAccent}>
+        <Circle cx="54" cy="52" r="2" />
+        <Circle cx="64" cy="44" r="2" />
+        <Circle cx="74" cy="48" r="2" />
+        <Path
+          d="M54,52 L64,44 L74,48"
+          stroke={COLORS.splashAccent}
+          strokeWidth="1"
+          fill="none"
+          opacity="0.5"
+        />
       </G>
     </AnimatedSvg>
   );
 };
 
 // ------------------------------------------------------------------
-// 2. AMBIENT BACKGROUND GLOW
+// 2. MINIMAL BACKGROUND (Single subtle glow)
 // ------------------------------------------------------------------
-const PulseGlow = ({ size, color, delay }) => {
-  const pulseAnim = useRef(new Animated.Value(0.8)).current;
-  const opacityAnim = useRef(new Animated.Value(0)).current;
+const MinimalGlow = () => {
+  const glowAnim = useRef(new Animated.Value(0.6)).current;
 
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.parallel([
-          Animated.timing(pulseAnim, {
-            toValue: 1.2,
-            duration: 2000,
-            delay: delay,
-            easing: Easing.out(Easing.sin),
-            useNativeDriver: true,
-          }),
-          Animated.timing(opacityAnim, {
-            toValue: 0.15,
-            duration: 2000,
-            delay: delay,
-            useNativeDriver: true,
-          }),
-        ]),
-        Animated.parallel([
-          Animated.timing(pulseAnim, {
-            toValue: 0.8,
-            duration: 2000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(opacityAnim, {
-            toValue: 0,
-            duration: 2000,
-            useNativeDriver: true,
-          }),
-        ]),
+        Animated.timing(glowAnim, {
+          toValue: 1,
+          duration: 3000,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 0.6,
+          duration: 3000,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
       ])
     ).start();
-  }, [delay, opacityAnim, pulseAnim]);
+  }, [glowAnim]);
 
   return (
     <Animated.View
       style={[
-        styles.absoluteCenter,
+        styles.glowOrb,
         {
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          backgroundColor: color,
-          opacity: opacityAnim,
-          transform: [{ scale: pulseAnim }],
+          backgroundColor: COLORS.splashAccent,
+          opacity: glowAnim.interpolate({
+            inputRange: [0.6, 1],
+            outputRange: [0.08, 0.15],
+          }),
+          transform: [{ scale: glowAnim }],
         },
       ]}
     />
@@ -127,47 +157,63 @@ const PulseGlow = ({ size, color, delay }) => {
 };
 
 // ------------------------------------------------------------------
-// 3. MAIN SPLASH COMPONENT
+// 3. MINIMALIST SPLASH (Using COLORS)
 // ------------------------------------------------------------------
 export const AppSplashScreen = ({ onFinish }) => {
   const containerOpacity = useRef(new Animated.Value(0)).current;
-  const logoScale = useRef(new Animated.Value(0.3)).current;
-  const contentTranslateY = useRef(new Animated.Value(30)).current;
+  const logoScale = useRef(new Animated.Value(0.7)).current;
+  const logoY = useRef(new Animated.Value(15)).current;
   const textOpacity = useRef(new Animated.Value(0)).current;
+  const textY = useRef(new Animated.Value(12)).current;
+  const lineWidth = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // 1. Entrance Animation Sequence
-    Animated.sequence([
+    // Entrance - clean, elegant sequence
+    const entrance = Animated.sequence([
       Animated.timing(containerOpacity, {
         toValue: 1,
-        duration: 300,
+        duration: 500,
         useNativeDriver: true,
       }),
       Animated.parallel([
         Animated.spring(logoScale, {
           toValue: 1,
-          friction: 5,
-          tension: 45,
+          friction: 6,
+          tension: 55,
           useNativeDriver: true,
         }),
-        Animated.timing(contentTranslateY, {
+        Animated.timing(logoY, {
           toValue: 0,
-          duration: 700,
+          duration: 600,
           easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }),
         Animated.timing(textOpacity, {
           toValue: 1,
-          duration: 800,
-          delay: 300, // Wait for logo to pop before showing text
-          easing: Easing.out(Easing.ease),
+          duration: 700,
+          delay: 200,
           useNativeDriver: true,
         }),
+        Animated.timing(textY, {
+          toValue: 0,
+          duration: 600,
+          delay: 200,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(lineWidth, {
+          toValue: 40,
+          duration: 800,
+          delay: 300,
+          useNativeDriver: false,
+        }),
       ]),
-    ]).start();
+    ]);
 
-    // 2. Exit Animation
-    const hideTimer = setTimeout(() => {
+    entrance.start();
+
+    // Exit
+    const timer = setTimeout(() => {
       Animated.parallel([
         Animated.timing(containerOpacity, {
           toValue: 0,
@@ -176,7 +222,7 @@ export const AppSplashScreen = ({ onFinish }) => {
           useNativeDriver: true,
         }),
         Animated.timing(logoScale, {
-          toValue: 1.1, // Slight push forward on exit
+          toValue: 0.9,
           duration: 400,
           useNativeDriver: true,
         }),
@@ -185,129 +231,116 @@ export const AppSplashScreen = ({ onFinish }) => {
       });
     }, SPLASH_VISIBLE_MS);
 
-    return () => clearTimeout(hideTimer);
-  }, [containerOpacity, logoScale, contentTranslateY, textOpacity, onFinish]);
+    return () => clearTimeout(timer);
+  }, [onFinish]);
 
   return (
     <Animated.View style={[styles.container, { opacity: containerOpacity }]}>
-      <StatusBar barStyle="light-content" backgroundColor="#0F1724" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.splashBackground} />
 
-      {/* Abstract Background Elements matching the dark theme */}
-      <View style={styles.darkGradientOverlay} />
-      
-      {/* Cyan & Metallic Ambient Glows representing the tech/commerce vibe */}
-      <PulseGlow size={width * 0.8} color="#00E5FF" delay={0} />
-      <PulseGlow size={width * 1.1} color="#A0AABF" delay={1000} />
+      {/* Minimal background - clean dark using splash colors */}
+      <View style={[styles.bgDark, { backgroundColor: COLORS.splashBackgroundAlt }]} />
 
-      {/* Main Content Wrap */}
-      <Animated.View style={[styles.contentWrap, { transform: [{ translateY: contentTranslateY }] }]}>
-        
-        {/* 100% Code-Generated Logo */}
-        <View style={styles.logoContainer}>
-          <View style={styles.logoShadow}>
-            <CodeGeneratedLogo scaleAnim={logoScale} />
-          </View>
+      {/* Single subtle glow */}
+      <MinimalGlow />
+
+      {/* Main content - centered naturally */}
+      <Animated.View
+        style={[
+          styles.content,
+          {
+            transform: [{ translateY: logoY }],
+          },
+        ]}
+      >
+        <View style={styles.logoWrapper}>
+          <CodeGeneratedLogo scaleAnim={logoScale} />
         </View>
 
-        {/* Brand Typography */}
-        <Animated.View style={[styles.textWrap, { opacity: textOpacity }]}>
-          <Text style={styles.title}>Shopiii</Text>
-          <View style={styles.titleUnderline} />
-          <Text style={styles.subtitle}>Track daily entries. Grow with clarity.</Text>
+        <Animated.View
+          style={[
+            styles.textBlock,
+            {
+              opacity: textOpacity,
+              transform: [{ translateY: textY }],
+            },
+          ]}
+        >
+          <Text style={[styles.title, { color: COLORS.splashText }]}>SHOPIII</Text>
+          <Animated.View style={[styles.line, { width: lineWidth, backgroundColor: COLORS.splashAccent }]} />
+          <Text style={[styles.subtitle, { color: COLORS.splashMuted }]}>
+            Track daily entries. Grow with clarity.
+          </Text>
         </Animated.View>
-
       </Animated.View>
 
-      {/* Professional Footer Indicator */}
-      <Animated.View style={[styles.footerWrap, { opacity: textOpacity }]}>
-        <Text style={styles.footerText}>SYSTEM INITIALIZING</Text>
-        <View style={styles.footerLine} />
+      {/* Minimal footer - thin line, small text */}
+      <Animated.View style={[styles.footer, { opacity: textOpacity }]}>
+        <Text style={[styles.footerText, { color: COLORS.splashMuted }]}>READY</Text>
       </Animated.View>
     </Animated.View>
   );
 };
 
 // ------------------------------------------------------------------
-// 4. STYLES
+// 4. MINIMALIST STYLES
 // ------------------------------------------------------------------
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F1724', // Your exact requested dark primary background
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
   },
-  darkGradientOverlay: {
+  bgDark: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)', // Adds subtle depth
   },
-  absoluteCenter: {
+  glowOrb: {
     position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: width * 0.6,
+    height: width * 0.6,
+    borderRadius: width * 0.3,
+    alignSelf: 'center',
+    top: height * 0.5 - width * 0.3,
   },
-  contentWrap: {
+  content: {
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
   },
-  logoContainer: {
-    marginBottom: 40,
+  logoWrapper: {
+    marginBottom: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  logoShadow: {
-    shadowColor: '#00E5FF', // Cyan glowing shadow matching the inner logo
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 25,
-    elevation: 15,
-  },
-  textWrap: {
+  textBlock: {
     alignItems: 'center',
   },
   title: {
-    color: '#FFFFFF',
-    fontSize: 42,
-    letterSpacing: 3,
-    fontWeight: '900',
-    marginBottom: 10,
-    textShadowColor: 'rgba(255,255,255,0.1)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+    fontSize: 34,
+    letterSpacing: 6,
+    fontWeight: '300',
+    marginBottom: 14,
+    fontFamily: 'System',
   },
-  titleUnderline: {
-    width: 30,
-    height: 3,
-    backgroundColor: '#00E5FF', // Match the cyan from the logo chart
-    borderRadius: 2,
-    marginBottom: 15,
-    shadowColor: '#00E5FF',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 5,
+  line: {
+    height: 1.5,
+    marginBottom: 18,
+    opacity: 0.6,
   },
   subtitle: {
-    color: '#8C9BB3', // Muted metallic blue-grey
-    fontSize: 15,
+    fontSize: 13,
     letterSpacing: 1.2,
-    fontWeight: '500',
+    fontWeight: '400',
     textAlign: 'center',
   },
-  footerWrap: {
+  footer: {
     position: 'absolute',
-    bottom: 50,
+    bottom: 40,
     alignItems: 'center',
   },
   footerText: {
-    color: '#4B5A73',
     fontSize: 10,
     letterSpacing: 2.5,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  footerLine: {
-    width: 100,
-    height: 1,
-    backgroundColor: 'rgba(160, 170, 191, 0.2)',
+    fontWeight: '300',
   },
 });

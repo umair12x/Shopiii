@@ -11,7 +11,7 @@ import {
   Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { AppIcon as MaterialCommunityIcons } from '../components/AppIcon';
 import { LineChart, BarChart } from 'react-native-chart-kit';
 import { DataContext } from '../context/DataContext';
 import { SummaryCard } from '../components/SummaryCard';

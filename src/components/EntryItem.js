@@ -7,11 +7,11 @@ import {
   Alert,
   Animated,
 } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { AppIcon as MaterialCommunityIcons } from './AppIcon';
 import { COLORS, THEME } from '../config/colors';
 import { formatCurrency } from '../utils/currencyFormatter';
 
-export const EntryItem = ({ entry, onEdit, onDelete }) => {
+export const EntryItem = ({ entry, onEdit, onDelete, readOnly = false }) => {
   const isProfit = (entry.profit || 0) > 0;
   const isLoss = (entry.profit || 0) < 0;
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -120,24 +120,26 @@ export const EntryItem = ({ entry, onEdit, onDelete }) => {
         </View>
 
         {/* Action Buttons */}
+        {!readOnly && (
           <View style={styles.actionsSection}>
-          <View style={styles.actionButtons}>
-            <TouchableOpacity 
-              onPress={() => onEdit(entry)} 
-              style={styles.editBtn}
-              activeOpacity={0.7}
-            >
-              <MaterialCommunityIcons name="pencil-outline" size={18} color={COLORS.text} />
-            </TouchableOpacity>
-            <TouchableOpacity 
-              onPress={handleDelete} 
-              style={styles.deleteBtn}
-              activeOpacity={0.7}
-            >
-              <MaterialCommunityIcons name="trash-can-outline" size={18} color={COLORS.error} />
-            </TouchableOpacity>
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                onPress={() => onEdit && onEdit(entry)}
+                style={styles.editBtn}
+                activeOpacity={0.7}
+              >
+                <MaterialCommunityIcons name="pencil-outline" size={18} color={COLORS.text} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleDelete}
+                style={styles.deleteBtn}
+                activeOpacity={0.7}
+              >
+                <MaterialCommunityIcons name="trash-can-outline" size={18} color={COLORS.error} />
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        )}
       </TouchableOpacity>
     </Animated.View>
   );

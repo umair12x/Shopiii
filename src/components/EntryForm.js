@@ -12,7 +12,7 @@ import {
   Dimensions,
   ScrollView,
 } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { AppIcon as MaterialCommunityIcons } from './AppIcon';
 import { COLORS, THEME } from '../config/colors';
 
 const { height } = Dimensions.get('window');

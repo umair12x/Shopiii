@@ -19,20 +19,18 @@ import {
   Dimensions,
   Easing,
   Alert,
-  Linking,
-  AppState,
   Platform,
   ToastAndroid,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon as MaterialCommunityIcons } from "../components/AppIcon";
 import { useFocusEffect } from "@react-navigation/native";
 import { DataContext } from "../context/DataContext";
 import { COLORS, THEME } from "../config/colors";
 import { formatDateDisplay, formatTimeAgo } from "../utils/dateUtils";
 import { formatCurrency } from "../utils/currencyFormatter";
-import { requestRequiredPermissions, requestStoragePermission, checkStoragePermission } from "../utils/permissionManager";
+import { requestRequiredPermissions } from "../utils/permissionManager";
 import { downloadCSVToDevice } from "../utils/csvExporter";
 
 const { width: SCREEN_W } = Dimensions.get("window");
@@ -305,7 +303,6 @@ export const HomeScreen = () => {
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [isExporting, setIsExporting] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [pendingOpenSettings, setPendingOpenSettings] = useState(false);
 
   // Single animation controller instead of multiple refs
   const animController = useRef(new Animated.Value(0)).current;
@@ -384,42 +381,6 @@ export const HomeScreen = () => {
     requestPermissions();
   }, []);
 
-  // If user opened Settings to grant permission, detect return to app and retry export
-  useEffect(() => {
-    const handleAppState = async (next) => {
-      if (next === 'active' && pendingOpenSettings) {
-        setPendingOpenSettings(false);
-        try {
-          const granted = await checkStoragePermission();
-          if (granted) {
-            if (Platform.OS === 'android' && ToastAndroid) {
-              ToastAndroid.show('Storage granted — retrying export...', ToastAndroid.SHORT);
-            } else {
-              Alert.alert('Permission Granted', 'Storage permission granted. Retrying export...');
-            }
-            // Retry export
-            handleExportCSV();
-          } else {
-            if (Platform.OS === 'android' && ToastAndroid) {
-              ToastAndroid.show('Storage permission still not granted.', ToastAndroid.SHORT);
-            } else {
-              Alert.alert('Permission Not Granted', 'Storage permission was not granted.');
-            }
-          }
-        } catch (e) {
-          console.warn('Error checking permission after settings:', e);
-        }
-      }
-    };
-
-    const sub = AppState.addEventListener ? AppState.addEventListener('change', handleAppState) : null;
-    return () => {
-      try {
-        sub && sub.remove && sub.remove();
-      } catch (e) {}
-    };
-  }, [pendingOpenSettings, handleExportCSV]);
-
   // Single staggered entrance animation
   useEffect(() => {
     if (loading) return;
@@ -449,32 +410,6 @@ export const HomeScreen = () => {
   const handleExportCSV = useCallback(async () => {
     setIsExporting(true);
     try {
-      // Request storage permission first
-      const storagePermission = await requestStoragePermission();
-      
-      if (storagePermission.status !== 'granted') {
-        Alert.alert(
-          'Storage Permission Required',
-          'Please grant storage permission to download CSV files. You can enable this in app settings.',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            {
-              text: 'Open Settings',
-              onPress: () => {
-                try {
-                  setPendingOpenSettings(true);
-                  Linking.openSettings();
-                } catch (e) {
-                  console.warn('Unable to open settings:', e);
-                }
-              },
-            },
-          ],
-        );
-        setIsExporting(false);
-        return;
-      }
-
       // Get all data for export
       const allEntries = await getEntriesForDateRange(
         new Date(new Date().getFullYear(), 0, 1),
@@ -487,13 +422,13 @@ export const HomeScreen = () => {
       if (result.success) {
         Alert.alert(
           '✓ Downloaded Successfully',
-          result.message || 'CSV file has been downloaded to your device storage!',
+          result.message || 'Excel file exported successfully!',
           [{ text: 'OK' }]
         );
       } else {
         Alert.alert(
           'Download Failed',
-          result.message || 'Failed to download CSV file. Please try again.',
+          result.message || 'Failed to download Excel file. Please try again.',
           [{ text: 'OK' }]
         );
       }
@@ -874,7 +809,7 @@ export const HomeScreen = () => {
                     size={22}
                     color={COLORS.white}
                   />
-                  <Text style={styles.actionButtonText}>Export CSV</Text>
+                  <Text style={styles.actionButtonText}>Export Excel</Text>
                 </>
               )}
             </TouchableOpacity>

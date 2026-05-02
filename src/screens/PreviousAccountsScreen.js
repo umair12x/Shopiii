@@ -15,118 +15,31 @@ import {
   FlatList,
   Platform,
   Animated,
-  Dimensions,
   ScrollView,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon as MaterialCommunityIcons } from "../components/AppIcon";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { DataContext } from "../context/DataContext";
 import { EntryItem } from "../components/EntryItem";
 import { TotalsSummary } from "../components/TotalsSummary";
 import { COLORS, THEME } from "../config/colors";
-import {
-  formatDateDisplay,
-  formatDateShort,
-  getDayName,
-  getDayNumber,
-} from "../utils/dateUtils";
-
-const { width: SCREEN_W } = Dimensions.get("window");
-
-// ─── Week Day Orb ───
-const DayOrb = ({ date, isSelected, isToday, onPress, delay = 0 }) => {
-  const scale = useRef(new Animated.Value(0.8)).current;
-  const opacity = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const t = setTimeout(() => {
-      Animated.parallel([
-        Animated.spring(scale, {
-          toValue: 1,
-          friction: 6,
-          tension: 60,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }, delay);
-    return () => clearTimeout(t);
-  }, [scale, opacity, delay]);
-
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.7}
-      style={styles.orbTouch}
-    >
-      <Animated.View
-        style={[
-          styles.orbContainer,
-          {
-            opacity,
-            transform: [{ scale }],
-          },
-        ]}
-      >
-        <View
-          style={[
-            styles.orb,
-            isSelected && styles.orbSelected,
-            isToday && !isSelected && styles.orbToday,
-          ]}
-        >
-          <Text
-            style={[
-              styles.orbDayNum,
-              isSelected && styles.orbDayNumSelected,
-              isToday && !isSelected && styles.orbDayNumToday,
-            ]}
-          >
-            {getDayNumber(date)}
-          </Text>
-          {isToday && (
-            <View style={styles.orbTodayDot} />
-          )}
-        </View>
-        <Text
-          style={[
-            styles.orbDayName,
-            isSelected && styles.orbDayNameSelected,
-          ]}
-        >
-          {getDayName(date, true)}
-        </Text>
-      </Animated.View>
-    </TouchableOpacity>
-  );
-};
+import { formatDateDisplay } from "../utils/dateUtils";
 
 // ─── Timeline Entry Wrapper ───
-const TimelineEntry = ({ entry, index, total, onEdit, onDelete, onToggle }) => {
+const TimelineEntry = ({ entry, index, total }) => {
   const isLast = index === total - 1;
 
   return (
     <View style={styles.timelineRow}>
-      {/* Timeline left: dot + line */}
       <View style={styles.timelineLeft}>
         <View style={styles.timelineDot} />
         {!isLast && <View style={styles.timelineLine} />}
       </View>
-
-      {/* Entry card */}
       <View style={styles.timelineEntryCard}>
-        <EntryItem
-          entry={entry}
-          onEdit={onEdit}
-          onDelete={onDelete}
-        
-        />
+        <EntryItem entry={entry} readOnly />
       </View>
     </View>
   );
@@ -162,6 +75,48 @@ const CompactTotals = ({ totals }) => {
   );
 };
 
+// ─── iOS Date Picker Modal ───
+const IOSDatePickerModal = ({ visible, date, onChange, onClose }) => {
+  if (!visible) return null;
+  
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <View style={styles.pickerOverlay}>
+        <TouchableOpacity
+          style={styles.pickerBackdrop}
+          onPress={onClose}
+          activeOpacity={1}
+        />
+        <View style={styles.iosPickerSheet}>
+          <View style={styles.pickerHandle} />
+          <View style={styles.pickerHeader}>
+            <TouchableOpacity onPress={onClose}>
+              <Text style={styles.pickerCancel}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={styles.pickerTitle}>Jump to Date</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Text style={styles.pickerDone}>Done</Text>
+            </TouchableOpacity>
+          </View>
+          <DateTimePicker
+            value={date}
+            mode="date"
+            display="spinner"
+            onChange={onChange}
+            maximumDate={new Date()}
+            textColor={COLORS.text}
+          />
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
 // ═══════════════════════════════════════
 // MAIN SCREEN
 // ═══════════════════════════════════════
@@ -171,39 +126,26 @@ export const PreviousAccountsScreen = () => {
   const tabBarHeight = useBottomTabBarHeight();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [tempDate, setTempDate] = useState(new Date(selectedDate));
-  const [direction, setDirection] = useState(0);
 
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const slideAnim = useRef(new Animated.Value(0)).current;
   const headerFade = useRef(new Animated.Value(0)).current;
 
   const totals = calculateTotals();
+  const formattedDate = formatDateDisplay(tempDate);
 
-  // Generate week strip dates (3 days before, selected, 3 days after)
-  const weekStrip = useMemo(() => {
-    const days = [];
-    const base = new Date(tempDate);
-    for (let i = -3; i <= 3; i++) {
-      const d = new Date(base);
-      d.setDate(d.getDate() + i);
-      days.push(d);
-    }
-    return days;
-  }, [tempDate]);
-
-  // Entrance animation
+  // Simple entrance animation
   useEffect(() => {
     Animated.timing(headerFade, {
       toValue: 1,
-      duration: 500,
+      duration: 400,
       useNativeDriver: true,
     }).start();
   }, [headerFade]);
 
-  // Animate content change
+  // Content transition animation
   const animateTransition = useCallback(
     (dir) => {
-      setDirection(dir);
       Animated.sequence([
         Animated.parallel([
           Animated.timing(fadeAnim, {
@@ -212,7 +154,7 @@ export const PreviousAccountsScreen = () => {
             useNativeDriver: true,
           }),
           Animated.timing(slideAnim, {
-            toValue: dir * 30,
+            toValue: dir * 20,
             duration: 150,
             useNativeDriver: true,
           }),
@@ -220,13 +162,12 @@ export const PreviousAccountsScreen = () => {
         Animated.parallel([
           Animated.timing(fadeAnim, {
             toValue: 1,
-            duration: 300,
+            duration: 250,
             useNativeDriver: true,
           }),
           Animated.timing(slideAnim, {
             toValue: 0,
-            duration: 300,
-            easing: (x) => (x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2),
+            duration: 250,
             useNativeDriver: true,
           }),
         ]),
@@ -245,16 +186,19 @@ export const PreviousAccountsScreen = () => {
     [tempDate, changeDate, animateTransition]
   );
 
-  const handlePickerChange = (event, selected) => {
-    if (Platform.OS === "android") {
-      setPickerOpen(false);
-      if (event.type === "set" && selected) {
+  const handlePickerChange = useCallback(
+    (event, selected) => {
+      if (Platform.OS === "android") {
+        setPickerOpen(false);
+        if (event.type === "set" && selected) {
+          handleDateChange(selected);
+        }
+      } else if (selected) {
         handleDateChange(selected);
       }
-    } else if (selected) {
-      handleDateChange(selected);
-    }
-  };
+    },
+    [handleDateChange]
+  );
 
   const goBack = useCallback(() => {
     const d = new Date(tempDate);
@@ -268,36 +212,20 @@ export const PreviousAccountsScreen = () => {
     handleDateChange(d);
   }, [tempDate, handleDateChange]);
 
-  const isToday = (date) => {
-    const t = new Date();
-    return (
-      date.getDate() === t.getDate() &&
-      date.getMonth() === t.getMonth() &&
-      date.getFullYear() === t.getFullYear()
-    );
-  };
-
-  const isSelected = (date) => {
-    return (
-      date.getDate() === tempDate.getDate() &&
-      date.getMonth() === tempDate.getMonth() &&
-      date.getFullYear() === tempDate.getFullYear()
-    );
-  };
+  const openPicker = useCallback(() => setPickerOpen(true), []);
+  const closePicker = useCallback(() => setPickerOpen(false), []);
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
 
-      <ScrollView 
+      <ScrollView
         style={styles.container}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
           { paddingBottom: tabBarHeight + THEME.spacing.xl },
         ]}
-        scrollIndicatorInsets={{ bottom: tabBarHeight + 8 }}
-        contentInsetAdjustmentBehavior="automatic"
       >
         {/* ═══ HEADER ═══ */}
         <Animated.View style={[styles.header, { opacity: headerFade }]}>
@@ -312,15 +240,13 @@ export const PreviousAccountsScreen = () => {
               </View>
               <View>
                 <Text style={styles.headerTitle}>History</Text>
-                <Text style={styles.headerSubtitle}>
-                  {formatDateDisplay(tempDate)}
-                </Text>
+                <Text style={styles.headerSubtitle}>{formattedDate}</Text>
               </View>
             </View>
 
             <TouchableOpacity
               style={styles.calendarBtn}
-              onPress={() => setPickerOpen(true)}
+              onPress={openPicker}
               activeOpacity={0.7}
             >
               <MaterialCommunityIcons
@@ -331,82 +257,34 @@ export const PreviousAccountsScreen = () => {
             </TouchableOpacity>
           </View>
 
-          {/* Week Strip */}
-          <View style={styles.weekStripContainer}>
-            <TouchableOpacity onPress={goBack} style={styles.navArrow}>
+          {/* Simple Date Navigation */}
+          <View style={styles.dateNav}>
+            <TouchableOpacity onPress={goBack} style={styles.navBtn}>
               <MaterialCommunityIcons
                 name="chevron-left"
-                size={22}
-                color="rgba(255,255,255,0.6)"
+                size={24}
+                color="rgba(255,255,255,0.7)"
               />
             </TouchableOpacity>
-
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.weekStrip}
-            >
-              {weekStrip.map((date, idx) => (
-                <DayOrb
-                  key={date.toISOString()}
-                  date={date}
-                  isSelected={isSelected(date)}
-                  isToday={isToday(date)}
-                  onPress={() => handleDateChange(date)}
-                  delay={idx * 50}
-                />
-              ))}
-            </ScrollView>
-
-            <TouchableOpacity onPress={goForward} style={styles.navArrow}>
+            
+            <TouchableOpacity onPress={openPicker} style={styles.dateNavCenter}>
+              <MaterialCommunityIcons
+                name="calendar"
+                size={16}
+                color="rgba(255,255,255,0.6)"
+              />
+              <Text style={styles.dateNavText}>{formattedDate}</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity onPress={goForward} style={styles.navBtn}>
               <MaterialCommunityIcons
                 name="chevron-right"
-                size={22}
-                color="rgba(255,255,255,0.6)"
+                size={24}
+                color="rgba(255,255,255,0.7)"
               />
             </TouchableOpacity>
           </View>
         </Animated.View>
-
-        {/* ═══ DATE PICKERS ═══ */}
-        {pickerOpen && Platform.OS === "ios" && (
-          <View style={styles.pickerOverlay}>
-            <TouchableOpacity
-              style={styles.pickerBackdrop}
-              onPress={() => setPickerOpen(false)}
-            />
-            <View style={styles.iosPickerSheet}>
-              <View style={styles.pickerHandle} />
-              <View style={styles.pickerHeader}>
-                <TouchableOpacity onPress={() => setPickerOpen(false)}>
-                  <Text style={styles.pickerCancel}>Cancel</Text>
-                </TouchableOpacity>
-                <Text style={styles.pickerTitle}>Jump to Date</Text>
-                <TouchableOpacity onPress={() => setPickerOpen(false)}>
-                  <Text style={styles.pickerDone}>Done</Text>
-                </TouchableOpacity>
-              </View>
-              <DateTimePicker
-                value={tempDate}
-                mode="date"
-                display="spinner"
-                onChange={handlePickerChange}
-                maximumDate={new Date()}
-                textColor={COLORS.text}
-              />
-            </View>
-          </View>
-        )}
-
-        {pickerOpen && Platform.OS === "android" && (
-          <DateTimePicker
-            value={tempDate}
-            mode="date"
-            display="default"
-            onChange={handlePickerChange}
-            maximumDate={new Date()}
-          />
-        )}
 
         {/* ═══ CONTENT ═══ */}
         <Animated.View
@@ -451,9 +329,6 @@ export const PreviousAccountsScreen = () => {
                       entry={item}
                       index={index}
                       total={entries.length}
-                      onEdit={() => {}}
-                      onDelete={() => {}}
-                      onToggle={() => {}}
                     />
                   )}
                   contentContainerStyle={styles.timelineList}
@@ -474,11 +349,11 @@ export const PreviousAccountsScreen = () => {
                 </View>
                 <Text style={styles.emptyTitle}>No records</Text>
                 <Text style={styles.emptyDesc}>
-                  {formatDateDisplay(tempDate)} has no daily record.
+                  {formattedDate} has no daily record.
                 </Text>
                 <TouchableOpacity
                   style={styles.emptyCta}
-                  onPress={() => setPickerOpen(true)}
+                  onPress={openPicker}
                 >
                   <MaterialCommunityIcons
                     name="calendar-search"
@@ -491,7 +366,7 @@ export const PreviousAccountsScreen = () => {
             )}
           </View>
 
-          {/* TotalsSummary preserved for full view */}
+          {/* TotalsSummary */}
           {entries.length > 0 && (
             <View style={styles.fullTotals}>
               <TotalsSummary totals={totals} />
@@ -499,6 +374,26 @@ export const PreviousAccountsScreen = () => {
           )}
         </Animated.View>
       </ScrollView>
+
+      {/* ═══ DATE PICKERS ═══ */}
+      {Platform.OS === "ios" && (
+        <IOSDatePickerModal
+          visible={pickerOpen}
+          date={tempDate}
+          onChange={handlePickerChange}
+          onClose={closePicker}
+        />
+      )}
+
+      {Platform.OS === "android" && pickerOpen && (
+        <DateTimePicker
+          value={tempDate}
+          mode="date"
+          display="default"
+          onChange={handlePickerChange}
+          maximumDate={new Date()}
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -523,7 +418,7 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: COLORS.primary,
     paddingTop: 16,
-    paddingBottom: 20,
+    paddingBottom: 16,
   },
   headerTop: {
     flexDirection: "row",
@@ -570,92 +465,45 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.2)",
   },
 
-  // ─── Week Strip ───
-  weekStripContainer: {
+  // ─── Date Navigation ───
+  dateNav: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 8,
+    justifyContent: "space-between",
+    paddingHorizontal: THEME.spacing.lg,
   },
-  navArrow: {
-    width: 32,
+  navBtn: {
+    width: 40,
     height: 40,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  weekStrip: {
-    flexDirection: "row",
-    gap: 8,
-    paddingVertical: 4,
-  },
-  orbTouch: {
-    alignItems: "center",
-  },
-  orbContainer: {
-    alignItems: "center",
-    gap: 6,
-    width: 52,
-  },
-  orb: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    borderRadius: 12,
     backgroundColor: "rgba(255,255,255,0.08)",
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1.5,
-    borderColor: "rgba(255,255,255,0.15)",
   },
-  orbSelected: {
-    backgroundColor: COLORS.accent,
-    borderColor: "rgba(255,255,255,0.4)",
-    shadowColor: COLORS.accent,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 6,
+  dateNavCenter: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.12)",
   },
-  orbToday: {
-    borderColor: "#4ade80",
-    borderWidth: 2,
-  },
-  orbDayNum: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "rgba(255,255,255,0.7)",
-  },
-  orbDayNumSelected: {
-    color: COLORS.white,
-    fontSize: 18,
-  },
-  orbDayNumToday: {
-    color: "#4ade80",
-  },
-  orbTodayDot: {
-    position: "absolute",
-    bottom: 4,
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: "#4ade80",
-  },
-  orbDayName: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: "rgba(255,255,255,0.5)",
-    textTransform: "uppercase",
-  },
-  orbDayNameSelected: {
-    color: COLORS.accent,
-    fontWeight: "800",
+  dateNavText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "rgba(255,255,255,0.9)",
   },
 
   // ─── Picker ───
   pickerOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 100,
+    flex: 1,
+    justifyContent: "flex-end",
   },
   pickerBackdrop: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(11,19,32,0.5)",
   },
   iosPickerSheet: {

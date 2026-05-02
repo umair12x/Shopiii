@@ -1,39 +1,87 @@
-// Minimal, premium color palette and theme tokens
-export const COLORS = {
-  // Core
-  background: '#F7F8FA', // very light neutral
-  surface: '#FFFFFF', // card / surface background
-  primary: '#0F1724', // deep navy (brand primary)
-  accent: '#C49A6C', // warm gold accent
+import { Appearance } from 'react-native';
 
-  // Semantic colors
-  success: '#2E7D32',
-  error: '#C62828',
-  warning: '#D97706',
+const LIGHT_COLORS = {
+  background: '#F4FAFD',
+  surface: '#FFFFFF',
+  primary: '#10263F',
+  accent: '#00B4D8',
+  success: '#16A34A',
+  error: '#DC2626',
+  warning: '#F59E0B',
+  text: '#102033',
+  muted: '#607086',
+  white: '#FFFFFF',
+  black: '#102033',
+  transparent: 'transparent',
+  shadow: 'rgba(16,38,63,0.10)',
+  profitGreen: '#E8F7EE',
+  lossRed: '#FDEEEF',
+  pending: '#FFF7E8',
+  splashBackground: '#F4FAFD',
+  splashBackgroundAlt: '#EAF7FF',
+  splashRing: 'rgba(0,180,216,0.16)',
+  splashAccent: '#00B4D8',
+  splashAccentSoft: '#00E5FF',
+  splashText: '#102033',
+  splashMuted: '#607086',
+  splashMetalLight: '#FFFFFF',
+  splashMetalMid: '#C5D4E3',
+  splashMetalDark: '#8EA0B8',
+};
 
-  // Text
-  text: '#0B1320',
-  muted: '#6B7280',
-
-  // Utilities
+const DARK_COLORS = {
+  background: '#0B1220',
+  surface: '#111C30',
+  primary: '#060C16',
+  accent: '#D4AE84',
+  success: '#4CAF50',
+  error: '#EF5350',
+  warning: '#F59E0B',
+  text: '#E7EDF8',
+  muted: '#9AA7BD',
   white: '#FFFFFF',
   black: '#0B1320',
   transparent: 'transparent',
-  shadow: 'rgba(11,19,32,0.08)',
-  
-  // Semantic light tints
-  profitGreen: '#E6F4EA',
-  lossRed: '#FDECEC',
-  pending: '#FFF7E6',
+  shadow: 'rgba(0,0,0,0.35)',
+  profitGreen: 'rgba(76,175,80,0.18)',
+  lossRed: 'rgba(239,83,80,0.18)',
+  pending: 'rgba(245,158,11,0.16)',
+  splashBackground: '#0A0F1A',
+  splashBackgroundAlt: '#0F1724',
+  splashRing: 'rgba(0,229,255,0.15)',
+  splashAccent: '#00E5FF',
+  splashAccentSoft: '#00B4D8',
+  splashText: '#FFFFFF',
+  splashMuted: '#6B7A93',
+  splashMetalLight: '#FFFFFF',
+  splashMetalMid: '#B8C2D4',
+  splashMetalDark: '#8A95AE',
 };
 
-// Backwards color aliases for older files
-COLORS.light = COLORS.surface;
-COLORS.dark = COLORS.text;
-COLORS.lightGray = 'rgba(11,19,32,0.04)';
-COLORS.darkGray = COLORS.muted;
-COLORS.gray = COLORS.muted;
-COLORS.secondary = COLORS.accent;
+const withAliases = (palette, scheme) => ({
+  ...palette,
+  light: palette.surface,
+  dark: palette.text,
+  lightGray: scheme === 'dark' ? 'rgba(231,237,248,0.08)' : 'rgba(16,38,63,0.04)',
+  darkGray: palette.muted,
+  gray: palette.muted,
+  secondary: palette.accent,
+});
+
+export const getThemeColors = (scheme = Appearance.getColorScheme()) => {
+  const palette = scheme === 'dark' ? DARK_COLORS : LIGHT_COLORS;
+  return withAliases(palette, scheme);
+};
+
+export const COLORS = getThemeColors();
+
+export const applyColorScheme = (scheme) => {
+  Object.assign(COLORS, getThemeColors(scheme));
+};
+
+Appearance.addChangeListener(({ colorScheme }) => {
+  applyColorScheme(colorScheme);
+});
 
 export const THEME = {
   fonts: {

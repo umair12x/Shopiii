@@ -1,11 +1,25 @@
-import { requestPermissionsAsync, getPermissionsAsync } from 'expo-camera';
-import { 
-  getMediaLibraryPermissionsAsync, 
-  requestMediaLibraryPermissionsAsync,
-} from 'expo-media-library';
+import * as Camera from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { Platform, Alert } from 'react-native';
+
+const getCameraRequestPermissionFn = () => {
+  return (
+    Camera.requestCameraPermissionsAsync ||
+    (Camera.Camera && Camera.Camera.requestCameraPermissionsAsync) ||
+    Camera.requestPermissionsAsync ||
+    (Camera.Camera && Camera.Camera.requestPermissionsAsync)
+  );
+};
+
+const getCameraCheckPermissionFn = () => {
+  return (
+    Camera.getCameraPermissionsAsync ||
+    (Camera.Camera && Camera.Camera.getCameraPermissionsAsync) ||
+    Camera.getPermissionsAsync ||
+    (Camera.Camera && Camera.Camera.getPermissionsAsync)
+  );
+};
 
 /**
  * Request camera permission
@@ -15,8 +29,13 @@ export const requestCameraPermission = async () => {
     if (Platform.OS === 'web') {
       return { status: 'granted' }; // Web doesn't need explicit permissions
     }
-    
-    const result = await requestPermissionsAsync();
+
+    const requestPermission = getCameraRequestPermissionFn();
+    if (!requestPermission) {
+      throw new Error('Camera permission API is not available in this expo-camera version.');
+    }
+
+    const result = await requestPermission();
     return result;
   } catch (error) {
     console.error('Error requesting camera permission:', error);
@@ -32,8 +51,13 @@ export const checkCameraPermission = async () => {
     if (Platform.OS === 'web') {
       return true;
     }
-    
-    const result = await getPermissionsAsync();
+
+    const getPermission = getCameraCheckPermissionFn();
+    if (!getPermission) {
+      return false;
+    }
+
+    const result = await getPermission();
     return result.status === 'granted';
   } catch (error) {
     console.error('Error checking camera permission:', error);
@@ -50,17 +74,23 @@ export const requestStoragePermission = async () => {
       return { status: 'granted' };
     }
 
+    // Android 10+ does not expose a classic "Storage" app toggle.
+    // We use folder picker/share flow for exports, so treat as granted here.
+    if (Platform.OS === 'android') {
+      return { status: 'granted' };
+    }
+
     // First check current status
-    const current = await getMediaLibraryPermissionsAsync();
+    const current = await MediaLibrary.getPermissionsAsync();
     
     // If already granted or web, return
-    if (current.status === 'granted') {
-      return current;
+    if (current.granted) {
+      return { status: 'granted' };
     }
 
     // Request permission - this will show native permission dialog
-    const result = await requestMediaLibraryPermissionsAsync();
-    return result;
+    const result = await MediaLibrary.requestPermissionsAsync();
+    return { status: result.granted ? 'granted' : 'denied' };
   } catch (error) {
     console.error('Error requesting storage permission:', error);
     return { status: 'denied' };
@@ -76,8 +106,12 @@ export const checkStoragePermission = async () => {
       return true;
     }
 
-    const result = await getMediaLibraryPermissionsAsync();
-    return result.status === 'granted';
+    if (Platform.OS === 'android') {
+      return true;
+    }
+
+    const result = await MediaLibrary.getPermissionsAsync();
+    return result.granted;
   } catch (error) {
     console.error('Error checking storage permission:', error);
     return false;
@@ -153,45 +187,47 @@ export const saveCSVToDevice = async (csvContent, filename) => {
       };
     }
 
-    // First, check and request storage permission
-    const permission = await requestStoragePermission();
-    if (permission.status !== 'granted') {
-      return {
-        success: false,
-        message: 'Storage permission was denied. Cannot save file.',
-      };
-    }
-
     // Save to app's document directory first
     const docPath = `${FileSystem.documentDirectory}${filename}`;
     await FileSystem.writeAsStringAsync(docPath, csvContent, {
-      encoding: FileSystem.EncodingType.UTF8,
+      encoding: 'utf8',
     });
 
-    // Try to save to device library (Camera Roll/Downloads)
-    try {
-      // Create a media asset from the file
-      const asset = await MediaLibrary.createAssetAsync(docPath);
+    // Android: use SAF folder picker to let user choose Downloads or any folder.
+    if (Platform.OS === 'android' && FileSystem.StorageAccessFramework) {
+      try {
+        const directoryPermission =
+          await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
 
-      // Attempt to create or use an album named 'Shopiii' to store exports
-      const albumName = 'Shopiii';
-      const album = await MediaLibrary.getAlbumAsync(albumName);
-      if (album == null) {
-        try {
-          await MediaLibrary.createAlbumAsync(albumName, asset, false);
-        } catch (createErr) {
-          // On some Android versions creating an album may fail; ignore
-          console.warn('Could not create album, asset saved to library root:', createErr);
+        if (directoryPermission.granted) {
+          const base64Data = await FileSystem.readAsStringAsync(docPath, {
+            encoding: 'base64',
+          });
+
+          const targetUri = await FileSystem.StorageAccessFramework.createFileAsync(
+            directoryPermission.directoryUri,
+            filename,
+            'application/vnd.ms-excel'
+          );
+
+          await FileSystem.writeAsStringAsync(targetUri, base64Data, {
+            encoding: 'base64',
+          });
+
+          return {
+            success: true,
+            message: 'Excel saved successfully. Choose your Downloads folder in the picker if needed.',
+            filePath: targetUri,
+          };
         }
+      } catch (safError) {
+        console.warn('SAF save failed, falling back to app file:', safError);
       }
-    } catch (libraryError) {
-      console.warn('Could not save to device library via MediaLibrary:', libraryError);
-      // Continue - file is saved in app directory at least
     }
 
     return {
       success: true,
-      message: `CSV downloaded to device storage: ${filename}`,
+      message: `Excel file prepared: ${filename}`,
       filePath: docPath,
     };
   } catch (error) {

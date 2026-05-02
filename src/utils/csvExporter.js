@@ -1,32 +1,50 @@
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { saveCSVToDevice } from './permissionManager';
 
+const xmlEscape = (value) => {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+};
+
+const toRow = (cells) => {
+  const cellXml = cells
+    .map((cell) => `<Cell><Data ss:Type="String">${xmlEscape(cell)}</Data></Cell>`)
+    .join('');
+  return `<Row>${cellXml}</Row>`;
+};
+
 /**
- * Convert entries and shop details to CSV content
+ * Build an Excel 2003 XML workbook content (.xls-compatible).
+ * This format opens directly in Microsoft Excel on mobile and desktop.
  */
 export const generateCSV = (entries, shopDetails, productPrices) => {
-  let csv = '';
+  const rows = [];
+  rows.push(toRow(['SHOPIII - Data Export']));
+  rows.push(toRow([`Shop: ${shopDetails?.name || ''}`]));
+  rows.push(toRow([`Owner: ${shopDetails?.owner || ''}`]));
+  rows.push(toRow([`Address: ${shopDetails?.address || ''}`]));
+  rows.push(toRow([`Contact: ${shopDetails?.contact || ''}`]));
+  rows.push(toRow([`Exported: ${new Date().toLocaleString()}`]));
+  rows.push(toRow(['']));
+  rows.push(toRow(['DAILY TOTALS']));
+  rows.push(toRow(['Date', 'Total Purchases', 'Total Sales', 'Profit']));
 
-  // Header with shop details
-  csv += 'SHOPIII - Data Export\n';
-  csv += `Shop: ${shopDetails.name}\n`;
-  csv += `Owner: ${shopDetails.owner}\n`;
-  csv += `Address: ${shopDetails.address}\n`;
-  csv += `Contact: ${shopDetails.contact}\n`;
-  csv += `Exported: ${new Date().toLocaleString()}\n`;
-  csv += '\n\n';
-
-  // Entries Section (daily totals)
-  csv += '=== DAILY TOTALS ===\n';
-  csv += 'Date,Total Purchases,Total Sales,Profit\n';
-
-  entries.forEach((entry) => {
-    const cleanDate = entry.date || '';
-    csv += `${cleanDate},${entry.purchasePrice || 0},${entry.salePrice || 0},${entry.profit || 0}\n`;
+  (entries || []).forEach((entry) => {
+    rows.push(
+      toRow([
+        entry?.date || '',
+        String(entry?.purchasePrice || 0),
+        String(entry?.salePrice || 0),
+        String(entry?.profit || 0),
+      ])
+    );
   });
 
-  // Summary
   if (entries.length > 0) {
     const totals = entries.reduce(
       (acc, entry) => ({
@@ -41,91 +59,102 @@ export const generateCSV = (entries, shopDetails, productPrices) => {
       }
     );
 
-    csv += '\n--- SUMMARY ---\n';
-    csv += `Total Investment,${totals.totalInvestment}\n`;
-    csv += `Total Sales,${totals.totalSales}\n`;
-    csv += `Total Profit,${totals.totalProfit}\n`;
+    rows.push(toRow(['']));
+    rows.push(toRow(['SUMMARY']));
+    rows.push(toRow(['Total Investment', String(totals.totalInvestment)]));
+    rows.push(toRow(['Total Sales', String(totals.totalSales)]));
+    rows.push(toRow(['Total Profit', String(totals.totalProfit)]));
   }
 
-  // Products Section
   if (productPrices && productPrices.length > 0) {
-    csv += '\n\n=== PRODUCTS ===\n';
-    csv += 'Barcode,Product Name,Purchase Price,Sale Price,Notes\n';
+    rows.push(toRow(['']));
+    rows.push(toRow(['PRODUCTS']));
+    rows.push(toRow(['Barcode', 'Product Name', 'Purchase Price', 'Sale Price', 'Notes']));
     productPrices.forEach((product) => {
-      const cleanName = (product.productName || 'N/A').replace(/,/g, ';');
-      const cleanNotes = (product.notes || '').replace(/,/g, ';');
-      csv += `"${product.barcode || ''}","${cleanName}",${product.purchasePrice},${product.salePrice},"${cleanNotes}"\n`;
+      rows.push(
+        toRow([
+          product?.barcode || '',
+          product?.productName || 'N/A',
+          String(product?.purchasePrice || 0),
+          String(product?.salePrice || 0),
+          product?.notes || '',
+        ])
+      );
     });
   }
 
-  return csv;
+  return `<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+  <Worksheet ss:Name="Shopiii Export">
+    <Table>
+      ${rows.join('')}
+    </Table>
+  </Worksheet>
+</Workbook>`;
 };
 
 /**
- * Download CSV to device storage (primary method)
+ * Download Excel file (.xls) to device storage (primary method)
  */
 export const downloadCSVToDevice = async (entries, shopDetails, productPrices) => {
   try {
-    // Generate CSV content
-    const csvContent = generateCSV(entries, shopDetails, productPrices);
+    const excelContent = generateCSV(entries, shopDetails, productPrices);
 
-    // Create filename with timestamp
     const timestamp = new Date().toISOString().split('T')[0];
-    const filename = `shopiii_data_${timestamp}.csv`;
+    const filename = `shopiii_data_${timestamp}.xls`;
 
-    // Save to device storage
-    const result = await saveCSVToDevice(csvContent, filename);
+    const result = await saveCSVToDevice(excelContent, filename);
     return result;
   } catch (error) {
-    console.error('Error downloading CSV to device:', error);
+    console.error('Error downloading Excel to device:', error);
     return {
       success: false,
-      message: error.message || 'Failed to download CSV',
+      message: error.message || 'Failed to download Excel file',
       error,
     };
   }
 };
 
 /**
- * Export data as CSV file and share it (alternative method)
- * Falls back to sharing if device save doesn't work
+ * Export data as an Excel file and share it (alternative method)
  */
 export const downloadAsCSV = async (entries, shopDetails, productPrices) => {
   try {
-    // Generate CSV content
-    const csvContent = generateCSV(entries, shopDetails, productPrices);
+    const excelContent = generateCSV(entries, shopDetails, productPrices);
 
-    // Create filename with timestamp
     const timestamp = new Date().toISOString().split('T')[0];
-    const filename = `shopiii_data_${timestamp}.csv`;
+    const filename = `shopiii_data_${timestamp}.xls`;
     const filePath = `${FileSystem.documentDirectory}${filename}`;
 
-    // Write to file
-    await FileSystem.writeAsStringAsync(filePath, csvContent, {
-      encoding: FileSystem.EncodingType.UTF8,
+    await FileSystem.writeAsStringAsync(filePath, excelContent, {
+      encoding: 'utf8',
     });
 
-    // Check if sharing is available
     const isAvailable = await Sharing.isAvailableAsync();
     if (isAvailable) {
       await Sharing.shareAsync(filePath, {
-        mimeType: 'text/csv',
-        dialogTitle: 'Share CSV Export',
-        UTI: 'public.comma-separated-values-text',
+        mimeType: 'application/vnd.ms-excel',
+        dialogTitle: 'Share Excel Export',
+        UTI: 'com.microsoft.excel.xls',
       });
-      return { success: true, message: 'CSV exported successfully!' };
+      return { success: true, message: 'Excel file exported successfully!' };
     } else {
       return {
         success: true,
-        message: `CSV saved to: ${filePath}`,
+        message: `Excel file saved to: ${filePath}`,
         filePath,
       };
     }
   } catch (error) {
-    console.error('Error exporting CSV:', error);
+    console.error('Error exporting Excel:', error);
     return {
       success: false,
-      message: error.message || 'Failed to export CSV',
+      message: error.message || 'Failed to export Excel file',
       error,
     };
   }
