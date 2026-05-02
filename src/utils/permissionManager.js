@@ -2,8 +2,8 @@ import { requestPermissionsAsync, getPermissionsAsync } from 'expo-camera';
 import { 
   getMediaLibraryPermissionsAsync, 
   requestMediaLibraryPermissionsAsync,
-  saveToLibraryAsync 
 } from 'expo-media-library';
+import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system';
 import { Platform, Alert } from 'react-native';
 
@@ -170,15 +170,22 @@ export const saveCSVToDevice = async (csvContent, filename) => {
 
     // Try to save to device library (Camera Roll/Downloads)
     try {
-      if (Platform.OS === 'ios') {
-        // On iOS, save to camera roll
-        await saveToLibraryAsync(docPath);
-      } else if (Platform.OS === 'android') {
-        // On Android, also try to save to library
-        await saveToLibraryAsync(docPath);
+      // Create a media asset from the file
+      const asset = await MediaLibrary.createAssetAsync(docPath);
+
+      // Attempt to create or use an album named 'Shopiii' to store exports
+      const albumName = 'Shopiii';
+      const album = await MediaLibrary.getAlbumAsync(albumName);
+      if (album == null) {
+        try {
+          await MediaLibrary.createAlbumAsync(albumName, asset, false);
+        } catch (createErr) {
+          // On some Android versions creating an album may fail; ignore
+          console.warn('Could not create album, asset saved to library root:', createErr);
+        }
       }
     } catch (libraryError) {
-      console.warn('Could not save to device library:', libraryError);
+      console.warn('Could not save to device library via MediaLibrary:', libraryError);
       // Continue - file is saved in app directory at least
     }
 
