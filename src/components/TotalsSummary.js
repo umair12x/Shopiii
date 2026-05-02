@@ -66,10 +66,6 @@ export const TotalsSummary = ({ totals }) => {
     ]).start();
   }, []);
 
-  const profitMargin = totals.totalSales > 0 
-    ? ((totals.totalProfit / totals.totalSales) * 100).toFixed(1)
-    : 0;
-
   return (
     <Animated.View style={[
       styles.container,
@@ -83,9 +79,6 @@ export const TotalsSummary = ({ totals }) => {
         <View style={styles.headerLeft}>
           <MaterialCommunityIcons name="chart-pie" size={20} color={COLORS.accent} />
           <Text style={styles.headerTitle}>Overview</Text>
-        </View>
-        <View style={styles.marginBadge}>
-          <Text style={styles.marginText}>{profitMargin}% margin</Text>
         </View>
       </View>
 
@@ -114,37 +107,6 @@ export const TotalsSummary = ({ totals }) => {
         />
       </View>
 
-      {/* Collection Status */}
-      <View style={styles.separator} />
-      <View style={styles.collectionSection}>
-        <View style={styles.collectionItem}>
-          <View style={[styles.collectionDot, { backgroundColor: COLORS.success }]} />
-          <View style={styles.collectionInfo}>
-            <Text style={styles.collectionLabel}>Collected</Text>
-            <Text style={[styles.collectionValue, { color: COLORS.success }]}>
-              {formatCurrency(totals.collectedAmount)}
-            </Text>
-          </View>
-          <View style={[styles.progressBadge, styles.collectedBadge]}>
-            <MaterialCommunityIcons name="check-circle" size={14} color={COLORS.success} />
-          </View>
-        </View>
-        
-        <View style={styles.collectionDivider} />
-        
-        <View style={styles.collectionItem}>
-          <View style={[styles.collectionDot, { backgroundColor: COLORS.warning }]} />
-          <View style={styles.collectionInfo}>
-            <Text style={styles.collectionLabel}>Pending</Text>
-            <Text style={[styles.collectionValue, { color: COLORS.warning }]}>
-              {formatCurrency(totals.pendingAmount)}
-            </Text>
-          </View>
-          <View style={[styles.progressBadge, styles.pendingBadge]}>
-            <MaterialCommunityIcons name="clock-outline" size={14} color={COLORS.warning} />
-          </View>
-        </View>
-      </View>
     </Animated.View>
   );
 };
@@ -176,17 +138,6 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: COLORS.text,
     letterSpacing: -0.3,
-  },
-  marginBadge: {
-    backgroundColor: 'rgba(196,154,108,0.1)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
-  },
-  marginText: {
-    fontSize: THEME.fonts.xs,
-    color: COLORS.accent,
-    fontWeight: '700',
   },
   metricsRow: {
     flexDirection: 'row',
@@ -226,55 +177,5 @@ const styles = StyleSheet.create({
     height: 50,
     backgroundColor: 'rgba(11,19,32,0.06)',
     marginTop: 10,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: 'rgba(11,19,32,0.06)',
-    marginVertical: THEME.spacing.md,
-  },
-  collectionSection: {
-    gap: 12,
-  },
-  collectionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  collectionDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  collectionInfo: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  collectionLabel: {
-    fontSize: THEME.fonts.sm,
-    color: COLORS.muted,
-    fontWeight: '500',
-  },
-  collectionValue: {
-    fontSize: THEME.fonts.sm,
-    fontWeight: '700',
-  },
-  progressBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  collectedBadge: {
-    backgroundColor: 'rgba(46,125,50,0.1)',
-  },
-  pendingBadge: {
-    backgroundColor: 'rgba(217,119,6,0.1)',
-  },
-  collectionDivider: {
-    height: 1,
-    backgroundColor: 'rgba(11,19,32,0.04)',
   },
 });

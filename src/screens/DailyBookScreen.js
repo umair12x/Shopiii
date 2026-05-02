@@ -163,7 +163,6 @@ export const DailyBookScreen = () => {
     addEntry,
     updateEntry,
     deleteEntry,
-    togglePaymentStatus,
   } = useContext(DataContext);
   const tabBarHeight = useBottomTabBarHeight();
 
@@ -317,10 +316,9 @@ export const DailyBookScreen = () => {
         entry={item}
         onEdit={handleEditEntry}
         onDelete={deleteEntry}
-        onTogglePayment={togglePaymentStatus}
       />
     </View>
-  ), [handleEditEntry, deleteEntry, togglePaymentStatus]);
+  ), [handleEditEntry, deleteEntry]);
 
   // ─── List Header (Totals + Section Title) ───
   const ListHeaderComponent = useCallback(() => (
@@ -338,7 +336,7 @@ export const DailyBookScreen = () => {
               color={COLORS.accent}
             />
           </View>
-          <Text style={styles.sectionTitle}>Transactions</Text>
+          <Text style={styles.sectionTitle}>Daily Totals</Text>
         </View>
         {entries.length > 0 && (
           <Text style={styles.sectionCount}>
@@ -361,10 +359,9 @@ export const DailyBookScreen = () => {
           />
         </View>
       </View>
-      <Text style={styles.emptyTitle}>No entries yet</Text>
+      <Text style={styles.emptyTitle}>No record yet</Text>
       <Text style={styles.emptyDesc}>
-        Your ledger is empty. Add your first transaction to start
-        tracking.
+        Add today's purchases and sales to save the daily record.
       </Text>
       <TouchableOpacity
         style={styles.emptyCta}
@@ -376,7 +373,7 @@ export const DailyBookScreen = () => {
           size={20}
           color={COLORS.white}
         />
-        <Text style={styles.emptyCtaText}>Add Entry</Text>
+        <Text style={styles.emptyCtaText}>Add Record</Text>
       </TouchableOpacity>
     </View>
   ), [handleAddEntry]);
@@ -460,14 +457,14 @@ export const DailyBookScreen = () => {
 
             <View style={styles.headerMiddle}>
               <View>
-                <Text style={styles.headerTitle}>Daily Ledger</Text>
+                <Text style={styles.headerTitle}>Daily Totals</Text>
                 <Text style={styles.headerSubtitle}>
-                  Track every transaction
+                  One record per day
                 </Text>
               </View>
               <View style={styles.countOrb}>
                 <AnimatedCounter value={entries.length} />
-                <Text style={styles.countLabel}>Entries</Text>
+                <Text style={styles.countLabel}>Records</Text>
               </View>
             </View>
 
@@ -491,9 +488,9 @@ export const DailyBookScreen = () => {
               </View>
               <View style={styles.totalsStripDivider} />
               <View style={styles.totalsStripItem}>
-                <Text style={styles.totalsStripLabel}>Cash</Text>
+                 <Text style={styles.totalsStripLabel}>Purchases</Text>
                 <Text style={[styles.totalsStripValue, { color: COLORS.white }]}>
-                     {Number(totals?.totalSales || 0).toLocaleString()}
+                   {Number(totals?.totalInvestment || 0).toLocaleString()}
                 </Text>
               </View>
             </View>
@@ -552,7 +549,6 @@ export const DailyBookScreen = () => {
           }}
           onSubmit={handleFormSubmit}
           editData={editingEntry}
-          itemCount={entries.length}
         />
       </View>
     </SafeAreaView>

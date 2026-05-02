@@ -17,32 +17,27 @@ export const generateCSV = (entries, shopDetails, productPrices) => {
   csv += `Exported: ${new Date().toLocaleString()}\n`;
   csv += '\n\n';
 
-  // Entries Section
-  csv += '=== DAILY ENTRIES ===\n';
-  csv += 'Date,Item Name,Purchase Price,Sale Price,Profit,Payment Status\n';
+  // Entries Section (daily totals)
+  csv += '=== DAILY TOTALS ===\n';
+  csv += 'Date,Total Purchases,Total Sales,Profit\n';
 
   entries.forEach((entry) => {
-    const paymentStatus = entry.isPaymentCollected ? 'Collected' : 'Pending';
-    const cleanItemName = (entry.itemName || 'N/A').replace(/,/g, ';'); // Escape commas
-    csv += `${entry.date},"${cleanItemName}",${entry.purchasePrice},${entry.salePrice},${entry.profit},"${paymentStatus}"\n`;
+    const cleanDate = entry.date || '';
+    csv += `${cleanDate},${entry.purchasePrice || 0},${entry.salePrice || 0},${entry.profit || 0}\n`;
   });
 
   // Summary
   if (entries.length > 0) {
     const totals = entries.reduce(
       (acc, entry) => ({
-        totalInvestment: acc.totalInvestment + entry.purchasePrice,
-        totalSales: acc.totalSales + entry.salePrice,
-        totalProfit: acc.totalProfit + entry.profit,
-        pendingAmount: acc.pendingAmount + (entry.isPaymentCollected ? 0 : entry.salePrice),
-        collectedAmount: acc.collectedAmount + (entry.isPaymentCollected ? entry.salePrice : 0),
+        totalInvestment: acc.totalInvestment + (entry.purchasePrice || 0),
+        totalSales: acc.totalSales + (entry.salePrice || 0),
+        totalProfit: acc.totalProfit + (entry.profit || 0),
       }),
       {
         totalInvestment: 0,
         totalSales: 0,
         totalProfit: 0,
-        pendingAmount: 0,
-        collectedAmount: 0,
       }
     );
 
@@ -50,8 +45,6 @@ export const generateCSV = (entries, shopDetails, productPrices) => {
     csv += `Total Investment,${totals.totalInvestment}\n`;
     csv += `Total Sales,${totals.totalSales}\n`;
     csv += `Total Profit,${totals.totalProfit}\n`;
-    csv += `Pending Amount,${totals.pendingAmount}\n`;
-    csv += `Collected Amount,${totals.collectedAmount}\n`;
   }
 
   // Products Section

@@ -1,459 +1,313 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Easing, StatusBar, StyleSheet, Text, View, Dimensions } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { COLORS, THEME } from '../config/colors';
+import { Animated, Easing, StatusBar, StyleSheet, View, Text, Dimensions } from 'react-native';
+import Svg, { Path, Defs, LinearGradient, Stop, Circle, G, Polygon } from 'react-native-svg';
 
 const { width, height } = Dimensions.get('window');
-const SPLASH_VISIBLE_MS = 1500;
+const SPLASH_VISIBLE_MS = 2800; // Slightly longer to appreciate the visual setup
 
-const FloatingParticle = ({ index, color, size, initialOpacity }) => {
-  const yAnimation = useRef(new Animated.Value(0)).current;
-  const opacityAnimation = useRef(new Animated.Value(initialOpacity)).current;
-  const scaleAnimation = useRef(new Animated.Value(1)).current;
+// ------------------------------------------------------------------
+// 1. PURE CODE LOGO (Recreating the metallic cart + arrow)
+// ------------------------------------------------------------------
+const AnimatedSvg = Animated.createAnimatedComponent(Svg);
+
+const CodeGeneratedLogo = ({ scaleAnim }) => {
+  return (
+    <AnimatedSvg
+      width="180"
+      height="180"
+      viewBox="0 0 120 120"
+      style={{ transform: [{ scale: scaleAnim }] }}
+    >
+      <Defs>
+        {/* Metallic Silver Gradient for the Cart and Arrow */}
+        <LinearGradient id="metallic" x1="0" y1="0" x2="1" y2="1">
+          <Stop offset="0" stopColor="#FFFFFF" stopOpacity="1" />
+          <Stop offset="0.3" stopColor="#A0AABF" stopOpacity="1" />
+          <Stop offset="0.7" stopColor="#E0E5EC" stopOpacity="1" />
+          <Stop offset="1" stopColor="#78839C" stopOpacity="1" />
+        </LinearGradient>
+        
+        {/* Cyan Glow for the inner data elements */}
+        <LinearGradient id="cyanGlow" x1="0" y1="1" x2="0" y2="0">
+          <Stop offset="0" stopColor="#005A70" stopOpacity="1" />
+          <Stop offset="1" stopColor="#00E5FF" stopOpacity="1" />
+        </LinearGradient>
+      </Defs>
+
+      {/* Main Cart Body & Growth Trend Line */}
+      <G stroke="url(#metallic)" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" fill="none">
+        {/* Back handle and main diagonal cart frame */}
+        <Path d="M15,35 L30,35 L45,85 L95,85 L102,55" />
+        {/* Growth Arrow line overlapping the cart */}
+        <Path d="M35,60 L55,40 L70,55 L100,20" />
+      </G>
+
+      {/* Arrowhead at the top right */}
+      <Polygon points="90,15 108,12 105,30" fill="url(#metallic)" />
+
+      {/* Cart Wheels */}
+      <Circle cx="55" cy="100" r="6" fill="url(#metallic)" />
+      <Circle cx="85" cy="100" r="6" fill="url(#metallic)" />
+
+      {/* Inner Glowing Cyan Data Bars */}
+      <G stroke="url(#cyanGlow)" strokeWidth="5" strokeLinecap="round">
+        <Path d="M58,72 L58,62" />
+        <Path d="M68,72 L68,52" />
+        <Path d="M78,72 L78,60" />
+      </G>
+
+      {/* Connected Data Nodes (Hexagon abstraction) */}
+      <G fill="#00E5FF">
+        <Circle cx="55" cy="52" r="2.5" />
+        <Circle cx="65" cy="46" r="2.5" />
+        <Circle cx="75" cy="50" r="2.5" />
+        {/* Connecting lines between nodes */}
+        <Path d="M55,52 L65,46 L75,50" stroke="#00E5FF" strokeWidth="1" fill="none" />
+      </G>
+    </AnimatedSvg>
+  );
+};
+
+// ------------------------------------------------------------------
+// 2. AMBIENT BACKGROUND GLOW
+// ------------------------------------------------------------------
+const PulseGlow = ({ size, color, delay }) => {
+  const pulseAnim = useRef(new Animated.Value(0.8)).current;
+  const opacityAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    const createFloatingAnimation = () => {
-      Animated.loop(
+    Animated.loop(
+      Animated.sequence([
         Animated.parallel([
-          Animated.sequence([
-            Animated.timing(yAnimation, {
-              toValue: -20 - Math.random() * 30,
-              duration: 2000 + Math.random() * 2000,
-              easing: Easing.inOut(Easing.sin),
-              useNativeDriver: true,
-            }),
-            Animated.timing(yAnimation, {
-              toValue: 0,
-              duration: 2000 + Math.random() * 2000,
-              easing: Easing.inOut(Easing.sin),
-              useNativeDriver: true,
-            }),
-          ]),
-          Animated.sequence([
-            Animated.timing(opacityAnimation, {
-              toValue: initialOpacity * 0.3,
-              duration: 1500 + Math.random() * 1500,
-              easing: Easing.inOut(Easing.sin),
-              useNativeDriver: true,
-            }),
-            Animated.timing(opacityAnimation, {
-              toValue: initialOpacity,
-              duration: 1500 + Math.random() * 1500,
-              easing: Easing.inOut(Easing.sin),
-              useNativeDriver: true,
-            }),
-          ]),
-          Animated.loop(
-            Animated.sequence([
-              Animated.timing(scaleAnimation, {
-                toValue: 1.2,
-                duration: 2500 + Math.random() * 1500,
-                easing: Easing.inOut(Easing.sin),
-                useNativeDriver: true,
-              }),
-              Animated.timing(scaleAnimation, {
-                toValue: 1,
-                duration: 2500 + Math.random() * 1500,
-                easing: Easing.inOut(Easing.sin),
-                useNativeDriver: true,
-              }),
-            ])
-          ),
-        ])
-      ).start();
-    };
-
-    createFloatingAnimation();
-  }, []);
+          Animated.timing(pulseAnim, {
+            toValue: 1.2,
+            duration: 2000,
+            delay: delay,
+            easing: Easing.out(Easing.sin),
+            useNativeDriver: true,
+          }),
+          Animated.timing(opacityAnim, {
+            toValue: 0.15,
+            duration: 2000,
+            delay: delay,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.parallel([
+          Animated.timing(pulseAnim, {
+            toValue: 0.8,
+            duration: 2000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(opacityAnim, {
+            toValue: 0,
+            duration: 2000,
+            useNativeDriver: true,
+          }),
+        ]),
+      ])
+    ).start();
+  }, [delay, opacityAnim, pulseAnim]);
 
   return (
     <Animated.View
       style={[
-        styles.particle,
+        styles.absoluteCenter,
         {
           width: size,
           height: size,
           borderRadius: size / 2,
           backgroundColor: color,
-          opacity: opacityAnimation,
-          transform: [{ translateY: yAnimation }, { scale: scaleAnimation }],
+          opacity: opacityAnim,
+          transform: [{ scale: pulseAnim }],
         },
       ]}
     />
   );
 };
 
-const ShimmerRing = ({ size, delay }) => {
-  const rotateAnimation = useRef(new Animated.Value(0)).current;
-  const scaleAnimation = useRef(new Animated.Value(0.8)).current;
-  const opacityAnimation = useRef(new Animated.Value(0.15)).current;
-
-  useEffect(() => {
-    const shimmerEffect = Animated.loop(
-      Animated.parallel([
-        Animated.timing(rotateAnimation, {
-          toValue: 1,
-          duration: 8000,
-          easing: Easing.linear,
-          useNativeDriver: true,
-        }),
-        Animated.sequence([
-          Animated.timing(opacityAnimation, {
-            toValue: 0.05,
-            duration: 2000 + delay,
-            easing: Easing.inOut(Easing.sin),
-            useNativeDriver: true,
-          }),
-          Animated.timing(opacityAnimation, {
-            toValue: 0.15,
-            duration: 2000 + delay,
-            easing: Easing.inOut(Easing.sin),
-            useNativeDriver: true,
-          }),
-        ]),
-      ])
-    );
-
-    shimmerEffect.start();
-  }, []);
-
-  const rotate = rotateAnimation.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
-
-  return (
-    <Animated.View
-      style={[
-        styles.shimmerRing,
-        {
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          opacity: opacityAnimation,
-          transform: [{ rotate }, { scale: scaleAnimation }],
-        },
-      ]}
-    >
-      <View style={[styles.shimmerArc, { borderColor: COLORS.accent }]} />
-    </Animated.View>
-  );
-};
-
+// ------------------------------------------------------------------
+// 3. MAIN SPLASH COMPONENT
+// ------------------------------------------------------------------
 export const AppSplashScreen = ({ onFinish }) => {
   const containerOpacity = useRef(new Animated.Value(0)).current;
-  const contentTranslateY = useRef(new Animated.Value(18)).current;
-  const contentScale = useRef(new Animated.Value(0.95)).current;
-  const iconScale = useRef(new Animated.Value(0)).current;
-  const titleOpacity = useRef(new Animated.Value(0)).current;
-  const subtitleOpacity = useRef(new Animated.Value(0)).current;
-  const blurOpacity = useRef(new Animated.Value(0)).current;
-
-  // Particle configuration
-  const particles = [
-    { x: 60, y: 120, size: 6, color: 'rgba(196,154,108,0.4)', opacity: 0.6 },
-    { x: width - 80, y: 200, size: 4, color: 'rgba(255,255,255,0.3)', opacity: 0.5 },
-    { x: 100, y: height - 200, size: 8, color: 'rgba(196,154,108,0.3)', opacity: 0.7 },
-    { x: width - 100, y: 300, size: 5, color: 'rgba(255,255,255,0.4)', opacity: 0.6 },
-    { x: width * 0.3, y: 80, size: 7, color: 'rgba(196,154,108,0.35)', opacity: 0.5 },
-    { x: width * 0.7, y: height - 150, size: 5, color: 'rgba(255,255,255,0.35)', opacity: 0.55 },
-  ];
+  const logoScale = useRef(new Animated.Value(0.3)).current;
+  const contentTranslateY = useRef(new Animated.Value(30)).current;
+  const textOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Staggered entrance animation
-    const enterAnimation = Animated.parallel([
+    // 1. Entrance Animation Sequence
+    Animated.sequence([
       Animated.timing(containerOpacity, {
         toValue: 1,
-        duration: 420,
-        easing: Easing.out(Easing.cubic),
+        duration: 300,
         useNativeDriver: true,
       }),
-      Animated.timing(contentTranslateY, {
-        toValue: 0,
-        duration: 550,
-        easing: Easing.out(Easing.back(1.5)),
-        useNativeDriver: true,
-      }),
-      Animated.timing(contentScale, {
-        toValue: 1,
-        duration: 550,
-        easing: Easing.out(Easing.back(1.5)),
-        useNativeDriver: true,
-      }),
-      Animated.sequence([
-        Animated.delay(200),
-        Animated.spring(iconScale, {
+      Animated.parallel([
+        Animated.spring(logoScale, {
           toValue: 1,
-          friction: 3,
-          tension: 100,
+          friction: 5,
+          tension: 45,
           useNativeDriver: true,
         }),
-      ]),
-      Animated.sequence([
-        Animated.delay(400),
-        Animated.timing(titleOpacity, {
-          toValue: 1,
-          duration: 350,
+        Animated.timing(contentTranslateY, {
+          toValue: 0,
+          duration: 700,
           easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }),
-      ]),
-      Animated.sequence([
-        Animated.delay(600),
-        Animated.timing(subtitleOpacity, {
+        Animated.timing(textOpacity, {
           toValue: 1,
-          duration: 350,
-          easing: Easing.out(Easing.cubic),
+          duration: 800,
+          delay: 300, // Wait for logo to pop before showing text
+          easing: Easing.out(Easing.ease),
           useNativeDriver: true,
         }),
       ]),
-    ]);
+    ]).start();
 
-    enterAnimation.start();
-
-    // Exit animation
+    // 2. Exit Animation
     const hideTimer = setTimeout(() => {
       Animated.parallel([
         Animated.timing(containerOpacity, {
           toValue: 0,
-          duration: 350,
+          duration: 400,
           easing: Easing.in(Easing.quad),
           useNativeDriver: true,
         }),
-        Animated.timing(contentScale, {
-          toValue: 0.95,
-          duration: 350,
-          easing: Easing.in(Easing.quad),
+        Animated.timing(logoScale, {
+          toValue: 1.1, // Slight push forward on exit
+          duration: 400,
           useNativeDriver: true,
         }),
       ]).start(({ finished }) => {
-        if (finished && onFinish) {
-          onFinish();
-        }
+        if (finished && onFinish) onFinish();
       });
     }, SPLASH_VISIBLE_MS);
 
-    return () => {
-      clearTimeout(hideTimer);
-    };
-  }, [containerOpacity, contentScale, contentTranslateY, iconScale, titleOpacity, subtitleOpacity, onFinish]);
+    return () => clearTimeout(hideTimer);
+  }, [containerOpacity, logoScale, contentTranslateY, textOpacity, onFinish]);
 
   return (
     <Animated.View style={[styles.container, { opacity: containerOpacity }]}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
+      <StatusBar barStyle="light-content" backgroundColor="#0F1724" />
+
+      {/* Abstract Background Elements matching the dark theme */}
+      <View style={styles.darkGradientOverlay} />
       
-      {/* Gradient backdrops */}
-      <View style={styles.backdropTop} />
-      <View style={styles.backdropMiddle} />
-      <View style={styles.backdropBottom} />
-      
-      {/* Floating particles */}
-      {particles.map((particle, index) => (
-        <View
-          key={index}
-          style={[
-            styles.particleContainer,
-            {
-              left: particle.x,
-              top: particle.y,
-            },
-          ]}
-        >
-          <FloatingParticle
-            index={index}
-            color={particle.color}
-            size={particle.size}
-            initialOpacity={particle.opacity}
-          />
-        </View>
-      ))}
-      
-      {/* Shimmer rings */}
-      <ShimmerRing size={250} delay={0} />
-      <ShimmerRing size={350} delay={500} />
-      
-      {/* Center content */}
-      <Animated.View
-        style={[
-          styles.content,
-          {
-            transform: [{ translateY: contentTranslateY }, { scale: contentScale }],
-          },
-        ]}
-      >
-        {/* Icon with glow effect */}
-        <Animated.View style={[styles.iconOuterGlow, { transform: [{ scale: iconScale }] }]}>
-          <View style={styles.iconInnerGlow}>
-            <View style={styles.logoWrap}>
-              <MaterialCommunityIcons 
-                name="storefront-outline" 
-                size={48} 
-                color={COLORS.accent}
-                style={styles.iconShadow}
-              />
-            </View>
-          </View>
-        </Animated.View>
+      {/* Cyan & Metallic Ambient Glows representing the tech/commerce vibe */}
+      <PulseGlow size={width * 0.8} color="#00E5FF" delay={0} />
+      <PulseGlow size={width * 1.1} color="#A0AABF" delay={1000} />
+
+      {/* Main Content Wrap */}
+      <Animated.View style={[styles.contentWrap, { transform: [{ translateY: contentTranslateY }] }]}>
         
-        {/* Title with letter spacing and shadow */}
-        <Animated.View style={{ opacity: titleOpacity }}>
+        {/* 100% Code-Generated Logo */}
+        <View style={styles.logoContainer}>
+          <View style={styles.logoShadow}>
+            <CodeGeneratedLogo scaleAnim={logoScale} />
+          </View>
+        </View>
+
+        {/* Brand Typography */}
+        <Animated.View style={[styles.textWrap, { opacity: textOpacity }]}>
           <Text style={styles.title}>Shopiii</Text>
           <View style={styles.titleUnderline} />
-        </Animated.View>
-        
-        {/* Subtitle */}
-        <Animated.View style={{ opacity: subtitleOpacity }}>
           <Text style={styles.subtitle}>Track daily entries. Grow with clarity.</Text>
         </Animated.View>
+
       </Animated.View>
-      
-      {/* Bottom decorative line */}
-      <View style={styles.bottomLine} />
+
+      {/* Professional Footer Indicator */}
+      <Animated.View style={[styles.footerWrap, { opacity: textOpacity }]}>
+        <Text style={styles.footerText}>SYSTEM INITIALIZING</Text>
+        <View style={styles.footerLine} />
+      </Animated.View>
     </Animated.View>
   );
 };
 
+// ------------------------------------------------------------------
+// 4. STYLES
+// ------------------------------------------------------------------
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.primary,
+    backgroundColor: '#0F1724', // Your exact requested dark primary background
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
   },
-  backdropTop: {
-    position: 'absolute',
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-    top: -100,
-    right: -100,
-    backgroundColor: 'rgba(196,154,108,0.12)',
-    transform: [{ scale: 1.2 }],
+  darkGradientOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)', // Adds subtle depth
   },
-  backdropMiddle: {
+  absoluteCenter: {
     position: 'absolute',
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    top: '35%',
-    left: -80,
-    backgroundColor: 'rgba(196,154,108,0.08)',
-    transform: [{ scale: 1.5 }],
-  },
-  backdropBottom: {
-    position: 'absolute',
-    width: 260,
-    height: 260,
-    borderRadius: 130,
-    bottom: -70,
-    left: -60,
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    transform: [{ scale: 1.3 }],
-  },
-  particleContainer: {
-    position: 'absolute',
-  },
-  particle: {
-    position: 'absolute',
-  },
-  shimmerRing: {
-    position: 'absolute',
-    borderWidth: 1,
-    borderColor: 'rgba(196,154,108,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  shimmerArc: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: 'rgba(196,154,108,0.15)',
-    borderTopColor: 'rgba(196,154,108,0.4)',
-    borderRightColor: 'rgba(196,154,108,0.3)',
-  },
-  content: {
+  contentWrap: {
     alignItems: 'center',
-    paddingHorizontal: THEME.spacing.lg,
+    justifyContent: 'center',
     zIndex: 10,
   },
-  iconOuterGlow: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(196,154,108,0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: THEME.spacing.xl,
+  logoContainer: {
+    marginBottom: 40,
   },
-  iconInnerGlow: {
-    width: 106,
-    height: 106,
-    borderRadius: 53,
-    backgroundColor: 'rgba(196,154,108,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: COLORS.accent,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 15,
-    elevation: 8,
+  logoShadow: {
+    shadowColor: '#00E5FF', // Cyan glowing shadow matching the inner logo
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 25,
+    elevation: 15,
   },
-  logoWrap: {
-    width: 94,
-    height: 94,
-    borderRadius: 47,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+  textWrap: {
     alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: 'rgba(196,154,108,0.3)',
-  },
-  iconShadow: {
-    shadowColor: COLORS.accent,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
   },
   title: {
-    color: COLORS.white,
-    fontSize: THEME.fonts.xxl + 8,
-    letterSpacing: 2,
-    fontWeight: '800',
-    textShadowColor: 'rgba(196,154,108,0.3)',
+    color: '#FFFFFF',
+    fontSize: 42,
+    letterSpacing: 3,
+    fontWeight: '900',
+    marginBottom: 10,
+    textShadowColor: 'rgba(255,255,255,0.1)',
     textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 10,
+    textShadowRadius: 4,
   },
   titleUnderline: {
-    width: 40,
-    height: 2,
-    backgroundColor: COLORS.accent,
-    alignSelf: 'center',
-    marginTop: 8,
-    marginBottom: THEME.spacing.md,
-    borderRadius: 1,
-    opacity: 0.7,
+    width: 30,
+    height: 3,
+    backgroundColor: '#00E5FF', // Match the cyan from the logo chart
+    borderRadius: 2,
+    marginBottom: 15,
+    shadowColor: '#00E5FF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 5,
   },
   subtitle: {
-    color: 'rgba(255,255,255,0.75)',
-    marginTop: THEME.spacing.xs,
-    fontSize: THEME.fonts.md,
+    color: '#8C9BB3', // Muted metallic blue-grey
+    fontSize: 15,
+    letterSpacing: 1.2,
+    fontWeight: '500',
     textAlign: 'center',
-    letterSpacing: 0.5,
-    lineHeight: 22,
-    fontWeight: '400',
-    textShadowColor: 'rgba(0,0,0,0.2)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
   },
-  bottomLine: {
+  footerWrap: {
     position: 'absolute',
-    bottom: 60,
-    width: 60,
-    height: 3,
-    backgroundColor: 'rgba(196,154,108,0.4)',
-    borderRadius: 1.5,
-    opacity: 0.6,
+    bottom: 50,
+    alignItems: 'center',
+  },
+  footerText: {
+    color: '#4B5A73',
+    fontSize: 10,
+    letterSpacing: 2.5,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  footerLine: {
+    width: 100,
+    height: 1,
+    backgroundColor: 'rgba(160, 170, 191, 0.2)',
   },
 });

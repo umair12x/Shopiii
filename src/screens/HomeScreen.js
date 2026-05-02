@@ -327,8 +327,9 @@ export const HomeScreen = () => {
           totalInvestment: acc.totalInvestment + (e.purchasePrice || 0),
           totalSales: acc.totalSales + (e.salePrice || 0),
           totalProfit: acc.totalProfit + (e.profit || 0),
+          // Payment collection tracking removed; assume totals are cash in hand for reporting
           cashInHand:
-            acc.cashInHand + (e.isPaymentCollected ? e.salePrice || 0 : 0),
+            acc.cashInHand + (e.salePrice || 0),
         }),
         { ...EMPTY_TOTALS },
       ),
@@ -670,7 +671,7 @@ export const HomeScreen = () => {
           <View style={styles.heroPills}>
             <MetricPill
               icon="wallet-outline"
-              label="Cash in Hand"
+              label="Total Sales"
               value={current.cashInHand}
               color={COLORS.success}
               delay={200}

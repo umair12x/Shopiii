@@ -45,7 +45,32 @@ export const DataProvider = ({ children }) => {
       const dateKey = formatDateKey(date);
       const stored = await AsyncStorage.getItem(`entries_${dateKey}`);
       if (stored) {
-        setEntries(JSON.parse(stored));
+        let parsed = JSON.parse(stored) || [];
+
+        // Migration: if stored data contains multiple itemized entries, aggregate into single daily totals
+        const looksItemized = parsed.length > 1 || (parsed[0] && parsed[0].itemName);
+        if (looksItemized) {
+          const aggregated = parsed.reduce(
+            (acc, e) => ({
+              purchasePrice: acc.purchasePrice + (e.purchasePrice || 0),
+              salePrice: acc.salePrice + (e.salePrice || 0),
+              profit: acc.profit + (e.profit || 0),
+            }),
+            { purchasePrice: 0, salePrice: 0, profit: 0 }
+          );
+          const daily = [{
+            id: Date.now().toString(),
+            date: dateKey,
+            purchasePrice: aggregated.purchasePrice,
+            salePrice: aggregated.salePrice,
+            profit: aggregated.profit,
+            createdAt: new Date().toISOString(),
+          }];
+          await AsyncStorage.setItem(`entries_${dateKey}`, JSON.stringify(daily));
+          parsed = daily;
+        }
+
+        setEntries(parsed);
       } else {
         setEntries([]);
       }
@@ -128,17 +153,18 @@ export const DataProvider = ({ children }) => {
 
   // Add new entry
   const addEntry = async (entry) => {
+    // Treat an "entry" as the day's totals (purchasePrice = total purchases, salePrice = total sales)
     const newEntry = {
       id: Date.now().toString(),
       date: formatDateKey(selectedDate),
-      itemName: entry.itemName || `Item ${entries.length + 1}`,
       purchasePrice: parseFloat(entry.purchasePrice) || 0,
       salePrice: parseFloat(entry.salePrice) || 0,
-      profit: parseFloat(entry.salePrice) - parseFloat(entry.purchasePrice) || 0,
-      isPaymentCollected: entry.isPaymentCollected || false,
+      profit: (parseFloat(entry.salePrice) || 0) - (parseFloat(entry.purchasePrice) || 0),
       createdAt: new Date().toISOString(),
     };
-    const updatedEntries = [...entries, newEntry];
+    // Replace any existing daily total for the same date (we keep only the day's summary)
+    const filtered = entries.filter((e) => e.date !== newEntry.date);
+    const updatedEntries = [...filtered, newEntry];
     await saveEntries(updatedEntries);
   };
 
@@ -149,7 +175,9 @@ export const DataProvider = ({ children }) => {
         ? {
             ...entry,
             ...updatedData,
-            profit: updatedData.salePrice - updatedData.purchasePrice,
+            purchasePrice: parseFloat(updatedData.purchasePrice) || 0,
+            salePrice: parseFloat(updatedData.salePrice) || 0,
+            profit: (parseFloat(updatedData.salePrice) || 0) - (parseFloat(updatedData.purchasePrice) || 0),
           }
         : entry
     );
@@ -159,16 +187,6 @@ export const DataProvider = ({ children }) => {
   // Delete entry
   const deleteEntry = async (entryId) => {
     const updatedEntries = entries.filter((entry) => entry.id !== entryId);
-    await saveEntries(updatedEntries);
-  };
-
-  // Toggle payment status
-  const togglePaymentStatus = async (entryId) => {
-    const updatedEntries = entries.map((entry) =>
-      entry.id === entryId
-        ? { ...entry, isPaymentCollected: !entry.isPaymentCollected }
-        : entry
-    );
     await saveEntries(updatedEntries);
   };
 
@@ -233,20 +251,17 @@ export const DataProvider = ({ children }) => {
 
   // Calculate totals
   const calculateTotals = () => {
+    // entries now represent per-day totals; compute aggregated numbers
     const totals = entries.reduce(
       (acc, entry) => ({
-        totalInvestment: acc.totalInvestment + entry.purchasePrice,
-        totalSales: acc.totalSales + entry.salePrice,
-        totalProfit: acc.totalProfit + entry.profit,
-        pendingAmount: acc.pendingAmount + (entry.isPaymentCollected ? 0 : entry.salePrice),
-        collectedAmount: acc.collectedAmount + (entry.isPaymentCollected ? entry.salePrice : 0),
+        totalInvestment: acc.totalInvestment + (entry.purchasePrice || 0),
+        totalSales: acc.totalSales + (entry.salePrice || 0),
+        totalProfit: acc.totalProfit + (entry.profit || 0),
       }),
       {
         totalInvestment: 0,
         totalSales: 0,
         totalProfit: 0,
-        pendingAmount: 0,
-        collectedAmount: 0,
       }
     );
     return totals;
@@ -486,7 +501,6 @@ export const DataProvider = ({ children }) => {
     addEntry,
     updateEntry,
     deleteEntry,
-    togglePaymentStatus,
     calculateTotals,
     getEntriesForDateRange,
     updateShopDetails,

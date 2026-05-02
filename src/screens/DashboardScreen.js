@@ -89,7 +89,7 @@ export const DashboardScreen = () => {
 
   const aggregateDataByDate = useCallback((entries, dates) => {
     const aggregated = dates.reduce((acc, date) => {
-      acc[getDateKey(date)] = { sales: 0, profit: 0, transactions: 0 };
+      acc[getDateKey(date)] = { sales: 0, profit: 0, records: 0 };
       return acc;
     }, {});
 
@@ -98,7 +98,7 @@ export const DashboardScreen = () => {
       if (aggregated[key]) {
         aggregated[key].sales += entry.salePrice || 0;
         aggregated[key].profit += entry.profit || 0;
-        aggregated[key].transactions += 1;
+        aggregated[key].records += 1;
       }
     });
 
@@ -109,7 +109,7 @@ export const DashboardScreen = () => {
     // Initialize all 12 months with zero
     const monthData = {};
     for (let i = 0; i < 12; i++) {
-      monthData[i] = { sales: 0, profit: 0, transactions: 0 };
+      monthData[i] = { sales: 0, profit: 0, records: 0 };
     }
 
     entries.forEach((entry) => {
@@ -126,7 +126,7 @@ export const DashboardScreen = () => {
       if (monthData[month]) {
         monthData[month].sales += entry.salePrice || 0;
         monthData[month].profit += entry.profit || 0;
-        monthData[month].transactions += 1;
+        monthData[month].records += 1;
       }
     });
 

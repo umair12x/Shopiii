@@ -545,7 +545,7 @@ export const SettingsScreen = ({ navigation }) => {
             <ActionCard
               icon="book-open-variant"
               title="Daily Book"
-              desc="Track transactions"
+              desc="Track daily totals"
               color={COLORS.primary}
               onPress={() => navigation.navigate("DailyBook")}
               delay={300}

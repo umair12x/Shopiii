@@ -125,7 +125,7 @@ const TimelineEntry = ({ entry, index, total, onEdit, onDelete, onToggle }) => {
           entry={entry}
           onEdit={onEdit}
           onDelete={onDelete}
-          onTogglePayment={onToggle}
+        
         />
       </View>
     </View>
@@ -434,7 +434,7 @@ export const PreviousAccountsScreen = () => {
                         color={COLORS.accent}
                       />
                     </View>
-                    <Text style={styles.entriesTitle}>Transactions</Text>
+                    <Text style={styles.entriesTitle}>Daily Totals</Text>
                   </View>
                   <View style={styles.entriesCountBadge}>
                     <Text style={styles.entriesCountText}>
@@ -474,7 +474,7 @@ export const PreviousAccountsScreen = () => {
                 </View>
                 <Text style={styles.emptyTitle}>No records</Text>
                 <Text style={styles.emptyDesc}>
-                  {formatDateDisplay(tempDate)} has no transactions.
+                  {formatDateDisplay(tempDate)} has no daily record.
                 </Text>
                 <TouchableOpacity
                   style={styles.emptyCta}

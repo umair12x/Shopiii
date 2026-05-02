@@ -11,9 +11,9 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, THEME } from '../config/colors';
 import { formatCurrency } from '../utils/currencyFormatter';
 
-export const EntryItem = ({ entry, onEdit, onDelete, onTogglePayment }) => {
-  const isProfit = entry.profit > 0;
-  const isLoss = entry.profit < 0;
+export const EntryItem = ({ entry, onEdit, onDelete }) => {
+  const isProfit = (entry.profit || 0) > 0;
+  const isLoss = (entry.profit || 0) < 0;
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const swipeAnim = useRef(new Animated.Value(0)).current;
 
@@ -35,8 +35,8 @@ export const EntryItem = ({ entry, onEdit, onDelete, onTogglePayment }) => {
 
   const handleDelete = () => {
     Alert.alert(
-      'Delete Entry',
-      `Are you sure you want to delete "${entry.itemName}"?`,
+      'Delete Day',
+      `Are you sure you want to delete the totals for ${entry.date}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         { 
@@ -54,8 +54,8 @@ export const EntryItem = ({ entry, onEdit, onDelete, onTogglePayment }) => {
     );
   };
 
-  const profitPercentage = entry.salePrice > 0 
-    ? ((entry.profit / entry.salePrice) * 100).toFixed(1)
+  const profitPercentage = (entry.salePrice || 0) > 0 
+    ? (((entry.profit || 0) / entry.salePrice) * 100).toFixed(1)
     : '0';
 
   return (
@@ -77,14 +77,14 @@ export const EntryItem = ({ entry, onEdit, onDelete, onTogglePayment }) => {
               isProfit ? styles.profitBadge : isLoss ? styles.lossBadge : styles.neutralBadge
             ]}>
               <MaterialCommunityIcons 
-                name={isProfit ? 'trending-up' : isLoss ? 'trending-down' : 'minus'} 
+                name={isProfit ? 'trending-up' : isLoss ? 'trending-down' : 'calendar'} 
                 size={20} 
                 color={isProfit ? COLORS.success : isLoss ? COLORS.error : COLORS.muted} 
               />
             </View>
-            
+
             <View style={styles.itemInfo}>
-              <Text style={styles.name} numberOfLines={1}>{entry.itemName}</Text>
+              <Text style={styles.name} numberOfLines={1}>{entry.date}</Text>
               <View style={styles.priceRow}>
                 <View style={styles.priceChip}>
                   <MaterialCommunityIcons name="arrow-down" size={12} color={COLORS.warning} />
@@ -120,28 +120,7 @@ export const EntryItem = ({ entry, onEdit, onDelete, onTogglePayment }) => {
         </View>
 
         {/* Action Buttons */}
-        <View style={styles.actionsSection}>
-          <TouchableOpacity
-            onPress={() => onTogglePayment(entry.id)}
-            style={[
-              styles.paymentBtn, 
-              entry.isPaymentCollected ? styles.collectedBtn : styles.pendingBtn
-            ]}
-            activeOpacity={0.7}
-          >
-            <MaterialCommunityIcons
-              name={entry.isPaymentCollected ? 'check-circle' : 'clock-outline'}
-              size={18}
-              color={entry.isPaymentCollected ? COLORS.success : COLORS.warning}
-            />
-            <Text style={[
-              styles.paymentText,
-              { color: entry.isPaymentCollected ? COLORS.success : COLORS.warning }
-            ]}>
-              {entry.isPaymentCollected ? 'Collected' : 'Pending'}
-            </Text>
-          </TouchableOpacity>
-
+          <View style={styles.actionsSection}>
           <View style={styles.actionButtons}>
             <TouchableOpacity 
               onPress={() => onEdit(entry)} 

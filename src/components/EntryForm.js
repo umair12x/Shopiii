@@ -17,8 +17,8 @@ import { COLORS, THEME } from '../config/colors';
 
 const { height } = Dimensions.get('window');
 
-export const EntryForm = ({ visible, onClose, onSubmit, editData = null, itemCount = 0 }) => {
-  const [itemName, setItemName] = useState('');
+export const EntryForm = ({ visible, onClose, onSubmit, editData = null }) => {
+  // For the simplified flow we collect daily totals
   const [purchasePrice, setPurchasePrice] = useState('');
   const [salePrice, setSalePrice] = useState('');
   const [focusedField, setFocusedField] = useState(null);
@@ -29,15 +29,13 @@ export const EntryForm = ({ visible, onClose, onSubmit, editData = null, itemCou
 
   useEffect(() => {
     if (editData) {
-      setItemName(editData.itemName);
       setPurchasePrice(String(editData.purchasePrice || ''));
       setSalePrice(String(editData.salePrice || ''));
     } else {
-      setItemName(`Item ${itemCount + 1}`);
       setPurchasePrice('');
       setSalePrice('');
     }
-  }, [editData, visible, itemCount]);
+  }, [editData, visible]);
 
   useEffect(() => {
     if (visible) {
@@ -64,8 +62,8 @@ export const EntryForm = ({ visible, onClose, onSubmit, editData = null, itemCou
   }, [visible]);
 
   const handleSubmit = () => {
-    if (!purchasePrice || !salePrice) {
-      alert('Please add prices');
+    if (purchasePrice === '' || salePrice === '') {
+      alert('Please enter totals for purchases and sales');
       return;
     }
     
@@ -84,8 +82,7 @@ export const EntryForm = ({ visible, onClose, onSubmit, editData = null, itemCou
     ]).start();
 
     setTimeout(() => {
-      onSubmit({ itemName, purchasePrice: parseFloat(purchasePrice), salePrice: parseFloat(salePrice) });
-      setItemName('');
+      onSubmit({ purchasePrice: parseFloat(purchasePrice), salePrice: parseFloat(salePrice) });
       setPurchasePrice('');
       setSalePrice('');
       handleClose();
@@ -105,17 +102,12 @@ export const EntryForm = ({ visible, onClose, onSubmit, editData = null, itemCou
         useNativeDriver: true,
       }),
     ]).start(() => {
-      setItemName('');
       setPurchasePrice('');
       setSalePrice('');
       setFocusedField(null);
       onClose();
     });
   };
-
-  const profitPreview = purchasePrice && salePrice 
-    ? (parseFloat(salePrice) - parseFloat(purchasePrice)).toFixed(2)
-    : null;
 
   return (
     <Modal visible={visible} transparent animationType="none">
@@ -145,9 +137,9 @@ export const EntryForm = ({ visible, onClose, onSubmit, editData = null, itemCou
                   />
                 </View>
                 <View>
-                  <Text style={styles.title}>{editData ? 'Edit Entry' : 'New Entry'}</Text>
+                  <Text style={styles.title}>{editData ? 'Edit Daily Totals' : 'New Daily Totals'}</Text>
                   <Text style={styles.headerSubtext}>
-                    {editData ? 'Update item details' : 'Add item details below'}
+                    {editData ? 'Update today\'s record' : 'Add today\'s purchases and sales'}
                   </Text>
                 </View>
               </View>
@@ -158,32 +150,14 @@ export const EntryForm = ({ visible, onClose, onSubmit, editData = null, itemCou
 
             <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollContent}>
               {/* Item Name Field */}
-              <View style={styles.fieldWrapper}>
-                <View style={styles.fieldHeader}>
-                  <MaterialCommunityIcons name="tag-outline" size={16} color={COLORS.accent} />
-                  <Text style={styles.label}>Item Name</Text>
-                </View>
-                <TextInput 
-                  style={[
-                    styles.input, 
-                    focusedField === 'name' && styles.inputFocused
-                  ]} 
-                  value={itemName} 
-                  onChangeText={setItemName} 
-                  placeholder="Enter item name" 
-                  placeholderTextColor={COLORS.muted}
-                  onFocus={() => setFocusedField('name')}
-                  onBlur={() => setFocusedField(null)}
-                  selectionColor={COLORS.accent}
-                />
-              </View>
+              {/* We no longer collect item name — this form captures daily totals */}
 
               {/* Price Fields */}
               <View style={styles.pricesRow}>
                 <View style={[styles.fieldWrapper, styles.priceField]}>
                   <View style={styles.fieldHeader}>
                     <MaterialCommunityIcons name="arrow-down-circle" size={16} color={COLORS.warning} />
-                    <Text style={styles.label}>Cost Price</Text>
+                    <Text style={styles.label}>Total Purchases</Text>
                   </View>
                   <View style={[
                     styles.priceInputWrap,
@@ -211,7 +185,7 @@ export const EntryForm = ({ visible, onClose, onSubmit, editData = null, itemCou
                 <View style={[styles.fieldWrapper, styles.priceField]}>
                   <View style={styles.fieldHeader}>
                     <MaterialCommunityIcons name="arrow-up-circle" size={16} color={COLORS.success} />
-                    <Text style={styles.label}>Sale Price</Text>
+                    <Text style={styles.label}>Total Sales</Text>
                   </View>
                   <View style={[
                     styles.priceInputWrap,
@@ -233,25 +207,6 @@ export const EntryForm = ({ visible, onClose, onSubmit, editData = null, itemCou
                 </View>
               </View>
 
-              {/* Profit Preview */}
-              {profitPreview !== null && (
-                <Animated.View style={[
-                  styles.profitPreview,
-                  parseFloat(profitPreview) >= 0 ? styles.profitPositive : styles.profitNegative
-                ]}>
-                  <MaterialCommunityIcons 
-                    name={parseFloat(profitPreview) >= 0 ? 'trending-up' : 'trending-down'} 
-                    size={20} 
-                    color={parseFloat(profitPreview) >= 0 ? COLORS.success : COLORS.error} 
-                  />
-                  <Text style={[
-                    styles.profitText,
-                    { color: parseFloat(profitPreview) >= 0 ? COLORS.success : COLORS.error }
-                  ]}>
-                    {parseFloat(profitPreview) >= 0 ? 'Profit' : 'Loss'}: Rs {Math.abs(parseFloat(profitPreview)).toFixed(2)}
-                  </Text>
-                </Animated.View>
-              )}
             </ScrollView>
 
             {/* Action Buttons */}
@@ -267,9 +222,9 @@ export const EntryForm = ({ visible, onClose, onSubmit, editData = null, itemCou
               
               <TouchableOpacity 
                 onPress={handleSubmit} 
-                style={[styles.submitBtn, (!purchasePrice || !salePrice) && styles.submitBtnDisabled]}
+                style={[styles.submitBtn, (purchasePrice === '' || salePrice === '') && styles.submitBtnDisabled]}
                 activeOpacity={0.7}
-                disabled={!purchasePrice || !salePrice}
+                disabled={purchasePrice === '' || salePrice === ''}
               >
                 <MaterialCommunityIcons 
                   name={editData ? 'content-save' : 'plus-circle'} 
@@ -277,7 +232,7 @@ export const EntryForm = ({ visible, onClose, onSubmit, editData = null, itemCou
                   color={COLORS.white} 
                 />
                 <Text style={styles.submitText}>
-                  {editData ? 'Update Entry' : 'Add Entry'}
+                  {editData ? 'Update Totals' : 'Save Totals'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -431,24 +386,6 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     fontSize: THEME.fonts.md,
     fontWeight: '500',
-  },
-  profitPreview: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    padding: 12,
-    borderRadius: 12,
-    marginTop: -8,
-  },
-  profitPositive: {
-    backgroundColor: 'rgba(46,125,50,0.08)',
-  },
-  profitNegative: {
-    backgroundColor: 'rgba(198,40,40,0.08)',
-  },
-  profitText: {
-    fontSize: THEME.fonts.sm,
-    fontWeight: '700',
   },
   actions: { 
     flexDirection: 'row', 
