@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ref, get, set } from 'firebase/database';
 import { FIREBASE_ENABLED, firebaseDatabase, ensureSignedIn } from '../config/firebaseConfig';
+import { downloadAsCSV } from '../utils/csvExporter';
 
 export const DataContext = createContext();
 
@@ -502,6 +503,9 @@ export const DataProvider = ({ children }) => {
     uploadToFirebase,
     fetchFromFirebase,
     updateSyncMetadata,
+    // CSV Export
+    downloadAsCSV: (allEntries, allShopDetails, allProductPrices) =>
+      downloadAsCSV(allEntries, allShopDetails, allProductPrices),
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

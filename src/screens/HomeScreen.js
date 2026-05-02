@@ -18,6 +18,11 @@ import {
   TouchableOpacity,
   Dimensions,
   Easing,
+  Alert,
+  Linking,
+  AppState,
+  Platform,
+  ToastAndroid,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -27,6 +32,8 @@ import { DataContext } from "../context/DataContext";
 import { COLORS, THEME } from "../config/colors";
 import { formatDateDisplay, formatTimeAgo } from "../utils/dateUtils";
 import { formatCurrency } from "../utils/currencyFormatter";
+import { requestRequiredPermissions, requestStoragePermission, checkStoragePermission } from "../utils/permissionManager";
+import { downloadCSVToDevice } from "../utils/csvExporter";
 
 const { width: SCREEN_W } = Dimensions.get("window");
 
@@ -281,6 +288,9 @@ export const HomeScreen = () => {
     syncMessage,
     dataStorageAge,
     uploadToFirebase,
+    fetchFromFirebase,
+    downloadAsCSV,
+    productPrices,
   } = useContext(DataContext);
   const tabBarHeight = useBottomTabBarHeight();
 
@@ -293,6 +303,9 @@ export const HomeScreen = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [isExporting, setIsExporting] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [pendingOpenSettings, setPendingOpenSettings] = useState(false);
 
   // Single animation controller instead of multiple refs
   const animController = useRef(new Animated.Value(0)).current;
@@ -358,6 +371,54 @@ export const HomeScreen = () => {
     loadData();
   }, [entries, loadData]);
 
+  // Request required permissions on component mount
+  useEffect(() => {
+    const requestPermissions = async () => {
+      try {
+        await requestRequiredPermissions();
+      } catch (error) {
+        console.warn('Permission request error:', error);
+      }
+    };
+    requestPermissions();
+  }, []);
+
+  // If user opened Settings to grant permission, detect return to app and retry export
+  useEffect(() => {
+    const handleAppState = async (next) => {
+      if (next === 'active' && pendingOpenSettings) {
+        setPendingOpenSettings(false);
+        try {
+          const granted = await checkStoragePermission();
+          if (granted) {
+            if (Platform.OS === 'android' && ToastAndroid) {
+              ToastAndroid.show('Storage granted — retrying export...', ToastAndroid.SHORT);
+            } else {
+              Alert.alert('Permission Granted', 'Storage permission granted. Retrying export...');
+            }
+            // Retry export
+            handleExportCSV();
+          } else {
+            if (Platform.OS === 'android' && ToastAndroid) {
+              ToastAndroid.show('Storage permission still not granted.', ToastAndroid.SHORT);
+            } else {
+              Alert.alert('Permission Not Granted', 'Storage permission was not granted.');
+            }
+          }
+        } catch (e) {
+          console.warn('Error checking permission after settings:', e);
+        }
+      }
+    };
+
+    const sub = AppState.addEventListener ? AppState.addEventListener('change', handleAppState) : null;
+    return () => {
+      try {
+        sub && sub.remove && sub.remove();
+      } catch (e) {}
+    };
+  }, [pendingOpenSettings, handleExportCSV]);
+
   // Single staggered entrance animation
   useEffect(() => {
     if (loading) return;
@@ -383,6 +444,92 @@ export const HomeScreen = () => {
       console.error("Sync error:", e);
     }
   }, [uploadToFirebase]);
+
+  const handleExportCSV = useCallback(async () => {
+    setIsExporting(true);
+    try {
+      // Request storage permission first
+      const storagePermission = await requestStoragePermission();
+      
+      if (storagePermission.status !== 'granted') {
+        Alert.alert(
+          'Storage Permission Required',
+          'Please grant storage permission to download CSV files. You can enable this in app settings.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Open Settings',
+              onPress: () => {
+                try {
+                  setPendingOpenSettings(true);
+                  Linking.openSettings();
+                } catch (e) {
+                  console.warn('Unable to open settings:', e);
+                }
+              },
+            },
+          ],
+        );
+        setIsExporting(false);
+        return;
+      }
+
+      // Get all data for export
+      const allEntries = await getEntriesForDateRange(
+        new Date(new Date().getFullYear(), 0, 1),
+        new Date()
+      );
+      
+      // Download to device storage
+      const result = await downloadCSVToDevice(allEntries, shopDetails, productPrices);
+      
+      if (result.success) {
+        Alert.alert(
+          '✓ Downloaded Successfully',
+          result.message || 'CSV file has been downloaded to your device storage!',
+          [{ text: 'OK' }]
+        );
+      } else {
+        Alert.alert(
+          'Download Failed',
+          result.message || 'Failed to download CSV file. Please try again.',
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      Alert.alert(
+        'Export Error',
+        error.message || 'An error occurred while exporting. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsExporting(false);
+    }
+  }, [downloadCSVToDevice, shopDetails, productPrices, getEntriesForDateRange]);
+
+  const handleDownloadFromFirebase = useCallback(async () => {
+    setIsDownloading(true);
+    try {
+      const result = await fetchFromFirebase();
+      if (result.success) {
+        Alert.alert(
+          'Download Successful',
+          result.message || 'Data downloaded from Firebase successfully!'
+        );
+      } else {
+        Alert.alert(
+          'Download Failed',
+          result.message || 'Failed to download data from Firebase'
+        );
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      Alert.alert('Download Error', error.message || 'An error occurred during download');
+    } finally {
+      setIsDownloading(false);
+    }
+  }, [fetchFromFirebase]);
 
   const current = data[period];
   const maxVal = Math.max(
@@ -707,6 +854,51 @@ export const HomeScreen = () => {
                 <Text style={styles.metricLabel}>{m.label}</Text>
               </View>
             ))}
+          </View>
+
+          {/* Export & Download Actions */}
+          <View style={styles.actionsGrid}>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.actionButtonPrimary]}
+              onPress={handleExportCSV}
+              disabled={isExporting}
+              activeOpacity={0.8}
+            >
+              {isExporting ? (
+                <ActivityIndicator size="small" color={COLORS.white} />
+              ) : (
+                <>
+                  <MaterialCommunityIcons
+                    name="download"
+                    size={22}
+                    color={COLORS.white}
+                  />
+                  <Text style={styles.actionButtonText}>Export CSV</Text>
+                </>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.actionButton, styles.actionButtonSecondary]}
+              onPress={handleDownloadFromFirebase}
+              disabled={isDownloading}
+              activeOpacity={0.8}
+            >
+              {isDownloading ? (
+                <ActivityIndicator size="small" color={COLORS.accent} />
+              ) : (
+                <>
+                  <MaterialCommunityIcons
+                    name="cloud-download"
+                    size={22}
+                    color={COLORS.accent}
+                  />
+                  <Text style={styles.actionButtonTextSecondary}>
+                    Download from Cloud
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
           </View>
 
           {/* Shop */}
@@ -1058,6 +1250,41 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 0.5,
     textAlign: "center",
+  },
+
+  actionsGrid: {
+    flexDirection: "row",
+    gap: THEME.spacing.md,
+    marginBottom: THEME.spacing.lg,
+    paddingHorizontal: THEME.spacing.sm,
+  },
+  actionButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: THEME.spacing.md,
+    borderRadius: 16,
+    gap: THEME.spacing.sm,
+    ...THEME.elevation.medium,
+  },
+  actionButtonPrimary: {
+    backgroundColor: COLORS.accent,
+  },
+  actionButtonSecondary: {
+    backgroundColor: COLORS.surface,
+    borderWidth: 2,
+    borderColor: COLORS.accent,
+  },
+  actionButtonText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: COLORS.white,
+  },
+  actionButtonTextSecondary: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: COLORS.accent,
   },
 
   shopSection: { marginTop: THEME.spacing.sm },

@@ -23,7 +23,19 @@ const mapFirebaseAuthError = (err) => {
   return err;
 };
 
-const readEnv = (key) => (process.env[key] || '').trim();
+import Constants from 'expo-constants';
+
+const readEnv = (key) => {
+  try {
+    const extra = Constants.expoConfig && Constants.expoConfig.extra;
+    if (extra && typeof extra[key] !== 'undefined' && extra[key] !== null) {
+      return String(extra[key]).trim();
+    }
+  } catch (e) {
+    // ignore
+  }
+  return (process.env[key] || '').trim();
+};
 
 export const firebaseConfig = {
   apiKey: readEnv('EXPO_PUBLIC_FIREBASE_API_KEY'),
