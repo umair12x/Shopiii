@@ -5,7 +5,7 @@ import {
 } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { AppIcon as MaterialCommunityIcons } from "./src/components/AppIcon";
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
@@ -19,6 +19,7 @@ import {
   Animated,
   Dimensions,
   TouchableOpacity,
+  useColorScheme,
 } from "react-native";
 
 import { DataProvider } from "./src/context/DataContext";
@@ -28,27 +29,12 @@ import { DashboardScreen } from "./src/screens/DashboardScreen";
 import { ProductsScreen } from "./src/screens/ProductsScreen";
 import { PreviousAccountsScreen } from "./src/screens/PreviousAccountsScreen";
 import { SettingsScreen } from "./src/screens/SettingsScreen";
-import { COLORS } from "./src/config/colors";
+import { COLORS, applyColorScheme, getThemeColors } from "./src/config/colors";
 import { AppSplashScreen } from "./src/components/AppSplashScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-
-// ============================================
-// THEME CONFIGURATION
-// ============================================
-const AppNavigationTheme = {
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    background: COLORS.background,
-    card: COLORS.surface,
-    text: COLORS.text,
-    border: "transparent",
-    primary: COLORS.accent,
-  },
-};
 
 // ============================================
 // TAB NAVIGATION CONSTANTS
@@ -205,6 +191,33 @@ const SplashScreenWrapper = ({ onFinish }) => {
 // ============================================
 export default function App() {
   const [isSplashVisible, setIsSplashVisible] = useState(true);
+  const systemColorScheme = useColorScheme();
+
+  const activeColors = React.useMemo(
+    () => getThemeColors(systemColorScheme),
+    [systemColorScheme],
+  );
+
+  useEffect(() => {
+    applyColorScheme(systemColorScheme);
+  }, [systemColorScheme]);
+
+  const appNavigationTheme = React.useMemo(
+    () => ({
+      ...DefaultTheme,
+      dark: systemColorScheme === "dark",
+      colors: {
+        ...DefaultTheme.colors,
+        background: activeColors.background,
+        card: activeColors.surface,
+        text: activeColors.text,
+        border: "transparent",
+        primary: activeColors.accent,
+        notification: activeColors.accent,
+      },
+    }),
+    [activeColors, systemColorScheme],
+  );
 
   const handleSplashFinish = useCallback(() => {
     setIsSplashVisible(false);
@@ -213,7 +226,6 @@ export default function App() {
   if (isSplashVisible) {
     return (
       <SafeAreaProvider>
-        <StatusBar hidden />
         <SplashScreenWrapper onFinish={handleSplashFinish} />
       </SafeAreaProvider>
     );
@@ -221,9 +233,12 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+      <StatusBar
+        barStyle={systemColorScheme === "dark" ? "light-content" : "dark-content"}
+        backgroundColor={activeColors.background}
+      />
       <DataProvider>
-        <NavigationContainer theme={AppNavigationTheme}>
+        <NavigationContainer theme={appNavigationTheme}>
           <RootStack />
         </NavigationContainer>
       </DataProvider>
