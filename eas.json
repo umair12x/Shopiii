@@ -3,6 +3,12 @@
     "production": {
       "releaseChannel": "production",
       "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:bundleRelease"
+      }
+    },
+    "preview": {
+      "android": {
         "buildType": "apk"
       }
     }
