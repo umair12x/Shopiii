@@ -98,7 +98,7 @@ const IOSDatePickerModal = ({ visible, date, onChange, onClose }) => {
             <TouchableOpacity onPress={onClose}>
               <Text style={styles.pickerCancel}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={styles.pickerTitle}>Jump to Date</Text>
+            <Text style={styles.pickerTitle}>Select Date</Text>
             <TouchableOpacity onPress={onClose}>
               <Text style={styles.pickerDone}>Done</Text>
             </TouchableOpacity>
@@ -117,6 +117,11 @@ const IOSDatePickerModal = ({ visible, date, onChange, onClose }) => {
   );
 };
 
+const toValidDate = (value) => {
+  const candidate = value instanceof Date ? new Date(value.getTime()) : new Date(value);
+  return Number.isNaN(candidate.getTime()) ? new Date() : candidate;
+};
+
 // ═══════════════════════════════════════
 // MAIN SCREEN
 // ═══════════════════════════════════════
@@ -125,14 +130,19 @@ export const PreviousAccountsScreen = () => {
     useContext(DataContext);
   const tabBarHeight = useBottomTabBarHeight();
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [tempDate, setTempDate] = useState(new Date(selectedDate));
+  const [tempDate, setTempDate] = useState(() => toValidDate(selectedDate));
 
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const slideAnim = useRef(new Animated.Value(0)).current;
   const headerFade = useRef(new Animated.Value(0)).current;
 
   const totals = calculateTotals();
-  const formattedDate = formatDateDisplay(tempDate);
+  const safeTempDate = useMemo(() => toValidDate(tempDate), [tempDate]);
+  const formattedDate = formatDateDisplay(safeTempDate);
+
+  useEffect(() => {
+    setTempDate(toValidDate(selectedDate));
+  }, [selectedDate]);
 
   // Simple entrance animation
   useEffect(() => {
@@ -178,12 +188,13 @@ export const PreviousAccountsScreen = () => {
 
   const handleDateChange = useCallback(
     (date) => {
-      const dir = date > tempDate ? 1 : -1;
-      setTempDate(date);
-      changeDate(date);
+      const nextDate = toValidDate(date);
+      const dir = nextDate.getTime() > safeTempDate.getTime() ? 1 : -1;
+      setTempDate(nextDate);
+      changeDate(nextDate);
       animateTransition(dir);
     },
-    [tempDate, changeDate, animateTransition]
+    [safeTempDate, changeDate, animateTransition]
   );
 
   const handlePickerChange = useCallback(
@@ -199,18 +210,6 @@ export const PreviousAccountsScreen = () => {
     },
     [handleDateChange]
   );
-
-  const goBack = useCallback(() => {
-    const d = new Date(tempDate);
-    d.setDate(d.getDate() - 1);
-    handleDateChange(d);
-  }, [tempDate, handleDateChange]);
-
-  const goForward = useCallback(() => {
-    const d = new Date(tempDate);
-    d.setDate(d.getDate() + 1);
-    handleDateChange(d);
-  }, [tempDate, handleDateChange]);
 
   const openPicker = useCallback(() => setPickerOpen(true), []);
   const closePicker = useCallback(() => setPickerOpen(false), []);
@@ -253,34 +252,6 @@ export const PreviousAccountsScreen = () => {
                 name="calendar-search"
                 size={20}
                 color={COLORS.accent}
-              />
-            </TouchableOpacity>
-          </View>
-
-          {/* Simple Date Navigation */}
-          <View style={styles.dateNav}>
-            <TouchableOpacity onPress={goBack} style={styles.navBtn}>
-              <MaterialCommunityIcons
-                name="chevron-left"
-                size={24}
-                color="rgba(255,255,255,0.7)"
-              />
-            </TouchableOpacity>
-            
-            <TouchableOpacity onPress={openPicker} style={styles.dateNavCenter}>
-              <MaterialCommunityIcons
-                name="calendar"
-                size={16}
-                color="rgba(255,255,255,0.6)"
-              />
-              <Text style={styles.dateNavText}>{formattedDate}</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity onPress={goForward} style={styles.navBtn}>
-              <MaterialCommunityIcons
-                name="chevron-right"
-                size={24}
-                color="rgba(255,255,255,0.7)"
               />
             </TouchableOpacity>
           </View>
@@ -379,7 +350,7 @@ export const PreviousAccountsScreen = () => {
       {Platform.OS === "ios" && (
         <IOSDatePickerModal
           visible={pickerOpen}
-          date={tempDate}
+          date={safeTempDate}
           onChange={handlePickerChange}
           onClose={closePicker}
         />
@@ -387,7 +358,7 @@ export const PreviousAccountsScreen = () => {
 
       {Platform.OS === "android" && pickerOpen && (
         <DateTimePicker
-          value={tempDate}
+          value={safeTempDate}
           mode="date"
           display="default"
           onChange={handlePickerChange}
@@ -463,38 +434,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.2)",
-  },
-
-  // ─── Date Navigation ───
-  dateNav: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: THEME.spacing.lg,
-  },
-  navBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: "rgba(255,255,255,0.08)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  dateNavCenter: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 12,
-    backgroundColor: "rgba(255,255,255,0.08)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.12)",
-  },
-  dateNavText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "rgba(255,255,255,0.9)",
   },
 
   // ─── Picker ───

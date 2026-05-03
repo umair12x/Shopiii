@@ -38,6 +38,32 @@ If you want cloud sync, define these Expo public variables:
 
 Firebase becomes active only when the required values are present.
 
+## Local `.env` setup
+
+1. Create a file named `.env` in the project root.
+2. Copy the variables above into it.
+3. Fill them with your Firebase values.
+4. Restart Expo after changing `.env`.
+
+You can also copy `.env.example` as a starter:
+
+```bash
+copy .env.example .env
+```
+
+## Local test flow
+
+```bash
+pnpm install
+pnpm start
+```
+
+Then verify:
+
+- app opens in Expo Go or emulator
+- Firebase features appear only when `.env` is filled
+- app still works in local-only mode if Firebase values are missing
+
 ## First run checklist
 
 1. Start the app

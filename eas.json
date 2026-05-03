@@ -1,0 +1,10 @@
+{
+  "build": {
+    "production": {
+      "releaseChannel": "production",
+      "android": {
+        "buildType": "apk"
+      }
+    }
+  }
+}

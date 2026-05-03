@@ -119,19 +119,6 @@ export const DailyBookScreen = () => {
     setFormVisible(true);
   }, []);
 
-  // ─── Loading State ───
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
-        <View style={styles.loadingScreen}>
-          <ActivityIndicator size="large" color={COLORS.accent} />
-          <Text style={styles.loadingText}>Loading...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   // ─── Render Item ───
   const renderItem = useCallback(
     ({ item }) => (
@@ -182,6 +169,19 @@ export const DailyBookScreen = () => {
     ),
     []
   );
+
+  // ─── Loading State ───
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
+        <View style={styles.loadingScreen}>
+          <ActivityIndicator size="large" color={COLORS.accent} />
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
